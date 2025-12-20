@@ -1,43 +1,866 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Halal Meat Order Form</title>
-    <script type="text/javascript">
-        // ... JavaScript functions (addMeatOption, handleSubmit) as previously defined ...
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Task App (Who / What-Why / When-Where / How-Framework)</title>
+    <meta
+      name="description"
+      content="A simple offline task app that captures Who, What/Why, When/Where, and How/Framework. Data is stored in your browser."
+    />
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('meatOrderForm').addEventListener('submit', handleSubmit);
+    <!-- Minimal CSS framework (CDN). Works offline too (without styles). -->
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.1.1/css/pico.min.css" />
+
+    <style>
+      :root {
+        --muted: #6b7280;
+      }
+      header.container {
+        padding-bottom: 0.25rem;
+      }
+      .subtitle {
+        color: var(--muted);
+        margin-top: 0.25rem;
+      }
+      .toolbar {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 1fr;
+        align-items: end;
+      }
+      @media (min-width: 900px) {
+        .toolbar {
+          grid-template-columns: 1.5fr 0.8fr 0.8fr 0.9fr;
+        }
+      }
+      .pill {
+        display: inline-block;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        color: rgba(0, 0, 0, 0.75);
+        background: rgba(0, 0, 0, 0.03);
+      }
+      .pill.done {
+        border-color: rgba(16, 185, 129, 0.35);
+        background: rgba(16, 185, 129, 0.12);
+      }
+      .pill.open {
+        border-color: rgba(59, 130, 246, 0.35);
+        background: rgba(59, 130, 246, 0.12);
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin: 0.25rem 0 0;
+      }
+      .task-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
+        align-items: baseline;
+        justify-content: space-between;
+      }
+      .task-title {
+        margin: 0;
+      }
+      .task-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .task-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 900px) {
+        .task-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .danger {
+        border-color: rgba(239, 68, 68, 0.4) !important;
+        color: rgba(239, 68, 68, 0.9) !important;
+      }
+      dialog article {
+        max-width: 900px;
+      }
+      .kbd {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.85em;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-bottom-width: 2px;
+        padding: 0.1rem 0.35rem;
+        border-radius: 0.35rem;
+        background: rgba(0, 0, 0, 0.03);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="container">
+      <hgroup>
+        <h1>Task App</h1>
+        <p class="subtitle">
+          Capture tasks using <strong>Who</strong>, <strong>What/Why</strong>, <strong>When/Where</strong>,
+          <strong>How/Framework</strong>. Stored locally in your browser.
+        </p>
+      </hgroup>
+    </header>
+
+    <main class="container">
+      <section aria-labelledby="add-task-heading">
+        <h2 id="add-task-heading">Add a task</h2>
+        <form id="taskForm">
+          <div class="task-grid">
+            <label>
+              Who (owner)
+              <input id="who" name="who" placeholder="e.g., Alex, Me, Team Ops" required />
+            </label>
+
+            <label>
+              What (task)
+              <input id="what" name="what" placeholder="e.g., Ship signup page" required />
+            </label>
+
+            <label>
+              Why (reason / outcome)
+              <input id="why" name="why" placeholder="e.g., Increase conversion, unblock release" />
+            </label>
+
+            <label>
+              When (due)
+              <input id="when" name="when" type="datetime-local" />
+            </label>
+
+            <label>
+              Where (context)
+              <input id="where" name="where" placeholder="e.g., Website, Office, Jira ABC-123" />
+            </label>
+
+            <label>
+              Framework (process / tool)
+              <input id="framework" name="framework" placeholder="e.g., Kanban, SMART, GTD, Scrum" />
+            </label>
+          </div>
+
+          <label>
+            How (steps)
+            <textarea
+              id="how"
+              name="how"
+              rows="4"
+              placeholder="e.g., 1) Draft copy 2) Review 3) Implement 4) QA 5) Deploy"
+            ></textarea>
+          </label>
+
+          <div class="task-actions">
+            <button type="submit">Add task</button>
+            <button type="button" id="clearFormBtn" class="secondary">Clear</button>
+          </div>
+          <p class="meta">
+            Tip: press <span class="kbd">Ctrl</span> + <span class="kbd">K</span> to jump to search.
+          </p>
+        </form>
+      </section>
+
+      <section aria-labelledby="tasks-heading">
+        <div class="task-header">
+          <h2 id="tasks-heading">Tasks</h2>
+          <div class="task-actions">
+            <button type="button" id="exportBtn" class="secondary">Export JSON</button>
+            <button type="button" id="importBtn" class="secondary">Import JSON</button>
+            <button type="button" id="clearAllBtn" class="secondary danger">Clear all</button>
+          </div>
+        </div>
+
+        <div class="toolbar" role="group" aria-label="Task filters and sorting">
+          <label>
+            Search
+            <input
+              id="search"
+              placeholder="Search who/what/why/where/how/framework..."
+              autocomplete="off"
+            />
+          </label>
+          <label>
+            Status
+            <select id="statusFilter">
+              <option value="all" selected>All</option>
+              <option value="open">Open</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+          <label>
+            Sort
+            <select id="sortBy">
+              <option value="updated_desc" selected>Recently updated</option>
+              <option value="created_desc">Recently created</option>
+              <option value="due_asc">Due soon</option>
+              <option value="due_desc">Due last</option>
+              <option value="what_asc">What (A → Z)</option>
+            </select>
+          </label>
+          <label>
+            View
+            <select id="density">
+              <option value="comfortable" selected>Comfortable</option>
+              <option value="compact">Compact</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="stats" class="meta" aria-live="polite"></p>
+        <div id="taskList" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <dialog id="editDialog" aria-labelledby="editTitle">
+      <article>
+        <header>
+          <button aria-label="Close" rel="prev" id="closeEditDialogBtn"></button>
+          <h3 id="editTitle">Edit task</h3>
+          <p class="meta" id="editMeta"></p>
+        </header>
+        <form id="editForm" method="dialog">
+          <input type="hidden" id="editId" name="id" />
+
+          <div class="task-grid">
+            <label>
+              Who
+              <input id="editWho" name="who" required />
+            </label>
+            <label>
+              What
+              <input id="editWhat" name="what" required />
+            </label>
+            <label>
+              Why
+              <input id="editWhy" name="why" />
+            </label>
+            <label>
+              When (due)
+              <input id="editWhen" name="when" type="datetime-local" />
+            </label>
+            <label>
+              Where
+              <input id="editWhere" name="where" />
+            </label>
+            <label>
+              Framework
+              <input id="editFramework" name="framework" />
+            </label>
+          </div>
+
+          <label>
+            How
+            <textarea id="editHow" name="how" rows="5"></textarea>
+          </label>
+
+          <fieldset>
+            <label>
+              <input type="checkbox" id="editDone" name="done" />
+              Mark as done
+            </label>
+          </fieldset>
+
+          <footer class="task-actions">
+            <button type="button" class="secondary" id="cancelEditBtn">Cancel</button>
+            <button type="submit" id="saveEditBtn">Save</button>
+          </footer>
+        </form>
+      </article>
+    </dialog>
+
+    <dialog id="importDialog" aria-labelledby="importTitle">
+      <article>
+        <header>
+          <button aria-label="Close" rel="prev" id="closeImportDialogBtn"></button>
+          <h3 id="importTitle">Import tasks (JSON)</h3>
+          <p class="meta">Paste exported JSON. This will merge by id (same id overwrites).</p>
+        </header>
+        <form id="importForm" method="dialog">
+          <label>
+            JSON
+            <textarea id="importJson" rows="10" placeholder='[{"id":"...","who":"...","what":"..."}]'></textarea>
+          </label>
+          <footer class="task-actions">
+            <button type="button" class="secondary" id="cancelImportBtn">Cancel</button>
+            <button type="submit">Import</button>
+          </footer>
+        </form>
+      </article>
+    </dialog>
+
+    <script>
+      (function () {
+        "use strict";
+
+        const STORAGE_KEY = "simple_task_app.v1";
+
+        /** @typedef {{id:string, who:string, what:string, why:string, when:string, where:string, how:string, framework:string, done:boolean, createdAt:number, updatedAt:number}} Task */
+
+        /** @returns {string} */
+        function newId() {
+          if (window.crypto && "randomUUID" in window.crypto) return window.crypto.randomUUID();
+          // Fallback (not cryptographically strong, but fine for ids here)
+          return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+        }
+
+        /** @param {unknown} value @returns {string} */
+        function asString(value) {
+          return typeof value === "string" ? value : "";
+        }
+
+        /** @param {unknown} value @returns {boolean} */
+        function asBool(value) {
+          return typeof value === "boolean" ? value : false;
+        }
+
+        /** @param {unknown} value @returns {number} */
+        function asNumber(value) {
+          return typeof value === "number" && Number.isFinite(value) ? value : Date.now();
+        }
+
+        /** @param {unknown} raw @returns {Task|null} */
+        function normalizeTask(raw) {
+          if (!raw || typeof raw !== "object") return null;
+          const t = /** @type {any} */ (raw);
+          const id = asString(t.id) || newId();
+          const who = asString(t.who).trim();
+          const what = asString(t.what).trim();
+          if (!who || !what) return null;
+
+          return {
+            id,
+            who,
+            what,
+            why: asString(t.why).trim(),
+            when: asString(t.when),
+            where: asString(t.where).trim(),
+            how: asString(t.how).trim(),
+            framework: asString(t.framework).trim(),
+            done: asBool(t.done),
+            createdAt: asNumber(t.createdAt),
+            updatedAt: asNumber(t.updatedAt),
+          };
+        }
+
+        /** @returns {Task[]} */
+        function loadTasks() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return [];
+            const tasks = parsed.map(normalizeTask).filter(Boolean);
+            return /** @type {Task[]} */ (tasks);
+          } catch {
+            return [];
+          }
+        }
+
+        /** @param {Task[]} tasks */
+        function saveTasks(tasks) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        }
+
+        /** @param {string} whenStr @returns {number|null} */
+        function dueTs(whenStr) {
+          if (!whenStr) return null;
+          const ts = Date.parse(whenStr);
+          return Number.isFinite(ts) ? ts : null;
+        }
+
+        /** @param {number} ts */
+        function formatTs(ts) {
+          try {
+            return new Intl.DateTimeFormat(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(new Date(ts));
+          } catch {
+            return new Date(ts).toLocaleString();
+          }
+        }
+
+        /** @param {Task} task */
+        function escapeText(task) {
+          // (Nothing; we only assign via textContent, never innerHTML for user input.)
+          return task;
+        }
+
+        /** @param {string} s */
+        function lower(s) {
+          return s.toLowerCase();
+        }
+
+        /** @param {Task} t @param {string} q */
+        function matchesQuery(t, q) {
+          const qq = lower(q).trim();
+          if (!qq) return true;
+          const hay = lower(
+            [t.who, t.what, t.why, t.when, t.where, t.how, t.framework].filter(Boolean).join(" ")
+          );
+          return hay.includes(qq);
+        }
+
+        const els = {
+          taskForm: document.getElementById("taskForm"),
+          clearFormBtn: document.getElementById("clearFormBtn"),
+          who: document.getElementById("who"),
+          what: document.getElementById("what"),
+          why: document.getElementById("why"),
+          when: document.getElementById("when"),
+          where: document.getElementById("where"),
+          how: document.getElementById("how"),
+          framework: document.getElementById("framework"),
+          taskList: document.getElementById("taskList"),
+          stats: document.getElementById("stats"),
+          search: document.getElementById("search"),
+          statusFilter: document.getElementById("statusFilter"),
+          sortBy: document.getElementById("sortBy"),
+          density: document.getElementById("density"),
+          exportBtn: document.getElementById("exportBtn"),
+          importBtn: document.getElementById("importBtn"),
+          clearAllBtn: document.getElementById("clearAllBtn"),
+
+          editDialog: document.getElementById("editDialog"),
+          closeEditDialogBtn: document.getElementById("closeEditDialogBtn"),
+          cancelEditBtn: document.getElementById("cancelEditBtn"),
+          editForm: document.getElementById("editForm"),
+          editMeta: document.getElementById("editMeta"),
+          editId: document.getElementById("editId"),
+          editWho: document.getElementById("editWho"),
+          editWhat: document.getElementById("editWhat"),
+          editWhy: document.getElementById("editWhy"),
+          editWhen: document.getElementById("editWhen"),
+          editWhere: document.getElementById("editWhere"),
+          editHow: document.getElementById("editHow"),
+          editFramework: document.getElementById("editFramework"),
+          editDone: document.getElementById("editDone"),
+
+          importDialog: document.getElementById("importDialog"),
+          closeImportDialogBtn: document.getElementById("closeImportDialogBtn"),
+          cancelImportBtn: document.getElementById("cancelImportBtn"),
+          importForm: document.getElementById("importForm"),
+          importJson: document.getElementById("importJson"),
+        };
+
+        /** @type {Task[]} */
+        let tasks = loadTasks();
+
+        function resetForm() {
+          els.taskForm.reset();
+          els.who.focus();
+        }
+
+        /** @param {Task[]} inTasks @returns {Task[]} */
+        function filteredAndSorted(inTasks) {
+          const q = els.search.value || "";
+          const status = els.statusFilter.value;
+          const sortBy = els.sortBy.value;
+
+          let out = inTasks
+            .filter((t) => matchesQuery(t, q))
+            .filter((t) => {
+              if (status === "open") return !t.done;
+              if (status === "done") return t.done;
+              return true;
+            });
+
+          const cmpStr = (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" });
+
+          out.sort((a, b) => {
+            if (sortBy === "updated_desc") return b.updatedAt - a.updatedAt;
+            if (sortBy === "created_desc") return b.createdAt - a.createdAt;
+            if (sortBy === "what_asc") return cmpStr(a.what, b.what);
+
+            if (sortBy === "due_asc" || sortBy === "due_desc") {
+              const da = dueTs(a.when);
+              const db = dueTs(b.when);
+              const aHas = da !== null;
+              const bHas = db !== null;
+              if (aHas && bHas) return sortBy === "due_asc" ? da - db : db - da;
+              if (aHas && !bHas) return -1;
+              if (!aHas && bHas) return 1;
+              // fallback
+              return b.updatedAt - a.updatedAt;
+            }
+
+            return b.updatedAt - a.updatedAt;
+          });
+
+          return out;
+        }
+
+        /** @param {Task} t */
+        function taskSummary(t) {
+          const bits = [];
+          if (t.who) bits.push(`Who: ${t.who}`);
+          if (t.when) bits.push(`When: ${t.when.replace("T", " ")}`);
+          if (t.where) bits.push(`Where: ${t.where}`);
+          if (t.framework) bits.push(`Framework: ${t.framework}`);
+          return bits.join(" • ");
+        }
+
+        /** @param {Task} t @returns {HTMLElement} */
+        function renderTask(t) {
+          escapeText(t);
+
+          const details = document.createElement("details");
+          details.dataset.taskId = t.id;
+          details.open = els.density.value !== "compact";
+
+          const summary = document.createElement("summary");
+          const summaryWrap = document.createElement("div");
+          summaryWrap.style.display = "flex";
+          summaryWrap.style.flexWrap = "wrap";
+          summaryWrap.style.gap = "0.5rem 0.75rem";
+          summaryWrap.style.alignItems = "baseline";
+          summaryWrap.style.justifyContent = "space-between";
+
+          const left = document.createElement("div");
+          left.style.display = "flex";
+          left.style.flexWrap = "wrap";
+          left.style.gap = "0.5rem";
+          left.style.alignItems = "baseline";
+
+          const title = document.createElement("strong");
+          title.textContent = t.what;
+
+          const pill = document.createElement("span");
+          pill.className = "pill " + (t.done ? "done" : "open");
+          pill.textContent = t.done ? "Done" : "Open";
+
+          const who = document.createElement("span");
+          who.className = "muted";
+          who.textContent = t.who ? `(${t.who})` : "";
+
+          left.append(title, pill);
+          if (t.who) left.append(who);
+
+          const right = document.createElement("span");
+          right.className = "muted";
+          const due = dueTs(t.when);
+          right.textContent = due ? `Due: ${formatTs(due)}` : `Updated: ${formatTs(t.updatedAt)}`;
+
+          summaryWrap.append(left, right);
+          summary.append(summaryWrap);
+
+          const body = document.createElement("div");
+
+          const meta = document.createElement("p");
+          meta.className = "meta";
+          meta.textContent = taskSummary(t);
+
+          const grid = document.createElement("div");
+          grid.className = "task-grid";
+
+          const field = (label, value) => {
+            const wrap = document.createElement("div");
+            const h = document.createElement("div");
+            h.className = "muted";
+            h.style.fontSize = "0.85rem";
+            h.textContent = label;
+            const v = document.createElement("div");
+            v.textContent = value || "—";
+            wrap.append(h, v);
+            return wrap;
+          };
+
+          grid.append(
+            field("Who", t.who),
+            field("What", t.what),
+            field("Why", t.why),
+            field("When", t.when ? t.when.replace("T", " ") : ""),
+            field("Where", t.where),
+            field("Framework", t.framework)
+          );
+
+          const how = document.createElement("div");
+          const howH = document.createElement("div");
+          howH.className = "muted";
+          howH.style.fontSize = "0.85rem";
+          howH.textContent = "How";
+          const howV = document.createElement("pre");
+          howV.style.whiteSpace = "pre-wrap";
+          howV.style.margin = "0.25rem 0 0";
+          howV.style.fontFamily = "inherit";
+          howV.textContent = t.how || "—";
+          how.append(howH, howV);
+
+          const actions = document.createElement("div");
+          actions.className = "task-actions";
+          actions.style.marginTop = "0.75rem";
+
+          const toggleBtn = document.createElement("button");
+          toggleBtn.type = "button";
+          toggleBtn.className = "secondary";
+          toggleBtn.dataset.action = "toggle";
+          toggleBtn.dataset.taskId = t.id;
+          toggleBtn.textContent = t.done ? "Mark open" : "Mark done";
+
+          const editBtn = document.createElement("button");
+          editBtn.type = "button";
+          editBtn.className = "secondary";
+          editBtn.dataset.action = "edit";
+          editBtn.dataset.taskId = t.id;
+          editBtn.textContent = "Edit";
+
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.className = "secondary danger";
+          delBtn.dataset.action = "delete";
+          delBtn.dataset.taskId = t.id;
+          delBtn.textContent = "Delete";
+
+          actions.append(toggleBtn, editBtn, delBtn);
+
+          body.append(meta, grid, how, actions);
+          details.append(summary, body);
+          return details;
+        }
+
+        function render() {
+          const view = filteredAndSorted(tasks);
+          const total = tasks.length;
+          const open = tasks.filter((t) => !t.done).length;
+          const done = total - open;
+          els.stats.textContent = `${view.length} shown • ${total} total • ${open} open • ${done} done`;
+
+          els.taskList.replaceChildren();
+
+          if (view.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "muted";
+            empty.textContent = total === 0 ? "No tasks yet. Add one above." : "No tasks match your filters.";
+            els.taskList.append(empty);
+            return;
+          }
+
+          for (const t of view) els.taskList.append(renderTask(t));
+        }
+
+        /** @param {Task} task */
+        function upsertTask(task) {
+          const idx = tasks.findIndex((t) => t.id === task.id);
+          if (idx === -1) tasks.unshift(task);
+          else tasks[idx] = task;
+          saveTasks(tasks);
+          render();
+        }
+
+        /** @param {string} id */
+        function getTask(id) {
+          return tasks.find((t) => t.id === id) || null;
+        }
+
+        /** @param {string} id */
+        function deleteTask(id) {
+          tasks = tasks.filter((t) => t.id !== id);
+          saveTasks(tasks);
+          render();
+        }
+
+        /** @param {string} id */
+        function toggleTask(id) {
+          const t = getTask(id);
+          if (!t) return;
+          const now = Date.now();
+          upsertTask({ ...t, done: !t.done, updatedAt: now });
+        }
+
+        function openEdit(id) {
+          const t = getTask(id);
+          if (!t) return;
+
+          els.editId.value = t.id;
+          els.editWho.value = t.who;
+          els.editWhat.value = t.what;
+          els.editWhy.value = t.why;
+          els.editWhen.value = t.when || "";
+          els.editWhere.value = t.where;
+          els.editHow.value = t.how;
+          els.editFramework.value = t.framework;
+          els.editDone.checked = t.done;
+          els.editMeta.textContent = `Created: ${formatTs(t.createdAt)} • Updated: ${formatTs(t.updatedAt)}`;
+
+          els.editDialog.showModal();
+          els.editWhat.focus();
+        }
+
+        function closeEdit() {
+          els.editDialog.close();
+        }
+
+        function openImport() {
+          els.importJson.value = "";
+          els.importDialog.showModal();
+          els.importJson.focus();
+        }
+
+        function closeImport() {
+          els.importDialog.close();
+        }
+
+        // Form: add
+        els.taskForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const now = Date.now();
+          const who = els.who.value.trim();
+          const what = els.what.value.trim();
+          if (!who || !what) return;
+
+          /** @type {Task} */
+          const t = {
+            id: newId(),
+            who,
+            what,
+            why: els.why.value.trim(),
+            when: els.when.value || "",
+            where: els.where.value.trim(),
+            how: els.how.value.trim(),
+            framework: els.framework.value.trim(),
+            done: false,
+            createdAt: now,
+            updatedAt: now,
+          };
+
+          tasks.unshift(t);
+          saveTasks(tasks);
+          render();
+          resetForm();
         });
+
+        els.clearFormBtn.addEventListener("click", () => resetForm());
+
+        // Filters
+        ["input", "change"].forEach((evt) => {
+          els.search.addEventListener(evt, render);
+          els.statusFilter.addEventListener(evt, render);
+          els.sortBy.addEventListener(evt, render);
+          els.density.addEventListener(evt, render);
+        });
+
+        // Keyboard shortcut: Ctrl+K focuses search
+        document.addEventListener("keydown", (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            els.search.focus();
+          }
+        });
+
+        // List actions (delegated)
+        els.taskList.addEventListener("click", (e) => {
+          const target = /** @type {HTMLElement|null} */ (e.target instanceof HTMLElement ? e.target : null);
+          if (!target) return;
+          const btn = target.closest("button[data-action]");
+          if (!btn) return;
+
+          const action = btn.getAttribute("data-action");
+          const id = btn.getAttribute("data-task-id");
+          if (!action || !id) return;
+
+          if (action === "toggle") toggleTask(id);
+          else if (action === "edit") openEdit(id);
+          else if (action === "delete") {
+            const t = getTask(id);
+            const label = t ? `"${t.what}" (${t.who})` : "this task";
+            if (confirm(`Delete ${label}? This cannot be undone.`)) deleteTask(id);
+          }
+        });
+
+        // Edit dialog
+        els.closeEditDialogBtn.addEventListener("click", closeEdit);
+        els.cancelEditBtn.addEventListener("click", closeEdit);
+        els.editForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const id = els.editId.value;
+          const existing = getTask(id);
+          if (!existing) return closeEdit();
+
+          const who = els.editWho.value.trim();
+          const what = els.editWhat.value.trim();
+          if (!who || !what) return;
+
+          const now = Date.now();
+          upsertTask({
+            ...existing,
+            who,
+            what,
+            why: els.editWhy.value.trim(),
+            when: els.editWhen.value || "",
+            where: els.editWhere.value.trim(),
+            how: els.editHow.value.trim(),
+            framework: els.editFramework.value.trim(),
+            done: els.editDone.checked,
+            updatedAt: now,
+          });
+          closeEdit();
+        });
+
+        // Export / Import / Clear
+        els.exportBtn.addEventListener("click", async () => {
+          const payload = JSON.stringify(tasks, null, 2);
+          try {
+            await navigator.clipboard.writeText(payload);
+            alert("Export copied to clipboard.");
+          } catch {
+            // Fallback: open a prompt
+            prompt("Copy your exported JSON:", payload);
+          }
+        });
+
+        els.importBtn.addEventListener("click", openImport);
+        els.closeImportDialogBtn.addEventListener("click", closeImport);
+        els.cancelImportBtn.addEventListener("click", closeImport);
+        els.importForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          let parsed;
+          try {
+            parsed = JSON.parse(els.importJson.value || "null");
+          } catch {
+            alert("Invalid JSON.");
+            return;
+          }
+          if (!Array.isArray(parsed)) {
+            alert("Expected a JSON array of tasks.");
+            return;
+          }
+
+          const incoming = parsed.map(normalizeTask).filter(Boolean);
+          if (incoming.length === 0) {
+            alert("No valid tasks found (each task must include at least who + what).");
+            return;
+          }
+
+          const byId = new Map(tasks.map((t) => [t.id, t]));
+          for (const t of /** @type {Task[]} */ (incoming)) byId.set(t.id, t);
+          tasks = Array.from(byId.values()).sort((a, b) => b.updatedAt - a.updatedAt);
+          saveTasks(tasks);
+          render();
+          closeImport();
+        });
+
+        els.clearAllBtn.addEventListener("click", () => {
+          if (!confirm("Clear ALL tasks? This cannot be undone.")) return;
+          tasks = [];
+          saveTasks(tasks);
+          render();
+        });
+
+        render();
+      })();
     </script>
-</head>
-<body>
-
-    <h2>Halal Meat Order Form</h2>
-
-    <form id="meatOrderForm">
-        <!-- Name Field -->
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
-
-        <!-- Email Field -->
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br>
-
-        <!-- Phone Number Field -->
-        <label for="phone">Phone Number:</label>
-        <input type="tel" id="phone" name="phone" required><br>
-
-        <!-- Dynamic meat options and quantity inputs -->
-        <div id="meatOptionsContainer"></div>
-        <button type="button" onclick="addMeatOption()">Add More Meat</button><br><br>
-
-        <input type="submit" value="Submit Order">
-    </form>
-
-    <script type="text/javascript">
-        // Initialize with one set of options
-        addMeatOption();
-    </script>
-
-</body>
+  </body>
 </html>
