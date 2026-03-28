@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tama Team Requests</title>
+    <meta name="description" content="Simple request tracker for the Tama team. Submit, assign, and track requests with WhatsApp notifications." />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.1.1/css/pico.min.css" />
+    <style>
+      :root {
+        --muted: #6b7280;
+        --accent: #25D366;
+      }
+      header.container { padding-bottom: 0.25rem; }
+      .subtitle { color: var(--muted); margin-top: 0.25rem; }
+      .toolbar {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 1fr;
+        align-items: end;
+      }
+      @media (min-width: 768px) {
+        .toolbar { grid-template-columns: 1.5fr 0.8fr 0.8fr 0.8fr; }
+        .form-grid { grid-template-columns: 1fr 1fr; }
+      }
+      .form-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 1fr;
+      }
+      .pill {
+        display: inline-block;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        border: 1px solid rgba(0,0,0,0.12);
+        color: rgba(0,0,0,0.75);
+        background: rgba(0,0,0,0.03);
+      }
+      .pill.pending {
+        border-color: rgba(234,179,8,0.4);
+        background: rgba(234,179,8,0.12);
+        color: #92400e;
+      }
+      .pill.in-progress {
+        border-color: rgba(59,130,246,0.4);
+        background: rgba(59,130,246,0.12);
+        color: #1e40af;
+      }
+      .pill.completed {
+        border-color: rgba(16,185,129,0.4);
+        background: rgba(16,185,129,0.12);
+        color: #065f46;
+      }
+      .pill.urgent {
+        border-color: rgba(239,68,68,0.4);
+        background: rgba(239,68,68,0.12);
+        color: #991b1b;
+      }
+      .meta { color: var(--muted); font-size: 0.9rem; margin: 0.25rem 0 0; }
+      .muted { color: var(--muted); }
+      .request-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
+        align-items: baseline;
+        justify-content: space-between;
+      }
+      .request-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .danger {
+        border-color: rgba(239,68,68,0.4) !important;
+        color: rgba(239,68,68,0.9) !important;
+      }
+      .whatsapp-btn {
+        background: #25D366 !important;
+        border-color: #25D366 !important;
+        color: #fff !important;
+      }
+      .whatsapp-btn:hover {
+        background: #1ebe5d !important;
+        border-color: #1ebe5d !important;
+      }
+      dialog article { max-width: 900px; }
+      .request-card {
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        background: #fff;
+        transition: border-color 0.15s;
+      }
+      .request-card:hover { border-color: rgba(0,0,0,0.2); }
+      .request-card.urgent-card { border-left: 4px solid #ef4444; }
+      .request-card-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+      .request-card-left {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.6rem;
+        align-items: center;
+      }
+      .request-card-title {
+        font-weight: 600;
+        font-size: 1.05rem;
+        margin: 0;
+      }
+      .request-card-body {
+        font-size: 0.95rem;
+        margin: 0.5rem 0;
+      }
+      .request-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .team-tag {
+        display: inline-block;
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        background: rgba(99,102,241,0.1);
+        color: #4338ca;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="container">
+      <hgroup>
+        <h1>Tama Team Requests</h1>
+        <p class="subtitle">
+          Submit requests to team members. No more lost messages in the channel.
+        </p>
+      </hgroup>
+    </header>
+
+    <main class="container">
+      <!-- New Request Form -->
+      <section>
+        <h2>New Request</h2>
+        <form id="requestForm">
+          <div class="form-grid">
+            <label>
+              Request (what do you need?)
+              <input id="requestText" name="request" placeholder="e.g., Need the Q1 report reviewed" required />
+            </label>
+
+            <label>
+              Assigned To
+              <select id="assignedTo" name="assignedTo" required>
+                <option value="" disabled selected>Pick a team member...</option>
+              </select>
+            </label>
+
+            <label>
+              Requested By
+              <select id="requestedBy" name="requestedBy" required>
+                <option value="" disabled selected>Who are you?</option>
+              </select>
+            </label>
+
+            <label>
+              Priority
+              <select id="priority" name="priority">
+                <option value="normal" selected>Normal</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </label>
+
+            <label>
+              Due Date (optional)
+              <input id="dueDate" name="dueDate" type="date" />
+            </label>
+          </div>
+
+          <label>
+            Notes (optional)
+            <textarea id="notes" name="notes" rows="2" placeholder="Any extra details..."></textarea>
+          </label>
+
+          <div class="request-actions">
+            <button type="submit">Submit Request</button>
+            <button type="button" id="submitAndWhatsApp" class="whatsapp-btn">Submit & Notify via WhatsApp</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Team Management -->
+      <details style="margin-bottom:1.5rem;">
+        <summary><strong>Manage Team Members</strong></summary>
+        <div style="margin-top:0.75rem;">
+          <form id="addMemberForm" style="display:flex;gap:0.5rem;align-items:end;flex-wrap:wrap;">
+            <label style="flex:1;min-width:150px;">
+              Name
+              <input id="memberName" placeholder="e.g., Ahmed" required />
+            </label>
+            <label style="flex:1;min-width:150px;">
+              WhatsApp Number (with country code)
+              <input id="memberPhone" placeholder="e.g., +971501234567" />
+            </label>
+            <button type="submit" style="margin-bottom:0;">Add Member</button>
+          </form>
+          <div id="memberList" style="margin-top:0.75rem;"></div>
+        </div>
+      </details>
+
+      <!-- Filters & Request List -->
+      <section>
+        <div class="request-header">
+          <h2>Requests</h2>
+          <div class="request-actions">
+            <button type="button" id="exportBtn" class="secondary">Export</button>
+            <button type="button" id="clearAllBtn" class="secondary danger">Clear All</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label>
+            Search
+            <input id="search" placeholder="Search requests..." autocomplete="off" />
+          </label>
+          <label>
+            Status
+            <select id="statusFilter">
+              <option value="all" selected>All</option>
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </label>
+          <label>
+            Assigned To
+            <select id="assignedFilter">
+              <option value="all" selected>Everyone</option>
+            </select>
+          </label>
+          <label>
+            Sort
+            <select id="sortBy">
+              <option value="newest" selected>Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="due_soon">Due soonest</option>
+              <option value="priority">Priority</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="stats" class="meta"></p>
+        <div id="requestList"></div>
+      </section>
+    </main>
+
+    <!-- Edit Dialog -->
+    <dialog id="editDialog">
+      <article>
+        <header>
+          <button aria-label="Close" rel="prev" id="closeEditBtn"></button>
+          <h3>Edit Request</h3>
+        </header>
+        <form id="editForm" method="dialog">
+          <input type="hidden" id="editId" />
+          <div class="form-grid">
+            <label>
+              Request
+              <input id="editRequest" required />
+            </label>
+            <label>
+              Assigned To
+              <select id="editAssignedTo" required></select>
+            </label>
+            <label>
+              Requested By
+              <select id="editRequestedBy" required></select>
+            </label>
+            <label>
+              Status
+              <select id="editStatus">
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+            <label>
+              Priority
+              <select id="editPriority">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </label>
+            <label>
+              Due Date
+              <input id="editDueDate" type="date" />
+            </label>
+          </div>
+          <label>
+            Notes
+            <textarea id="editNotes" rows="2"></textarea>
+          </label>
+          <footer class="request-actions">
+            <button type="button" class="secondary" id="cancelEditBtn">Cancel</button>
+            <button type="submit">Save</button>
+          </footer>
+        </form>
+      </article>
+    </dialog>
+
+    <script>
+      (function () {
+        "use strict";
+
+        const STORAGE_KEY = "tama_requests.v1";
+        const MEMBERS_KEY = "tama_members.v1";
+
+        /* ---- Data types ---- */
+        /** @typedef {{ id:string, request:string, assignedTo:string, requestedBy:string, status:string, priority:string, dueDate:string, notes:string, createdAt:number, updatedAt:number }} Request */
+        /** @typedef {{ name:string, phone:string }} Member */
+
+        /* ---- Helpers ---- */
+        function newId() {
+          if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+          return "r_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+        }
+
+        function formatDate(ts) {
+          return new Intl.DateTimeFormat(undefined, {
+            year: "numeric", month: "short", day: "2-digit",
+            hour: "2-digit", minute: "2-digit"
+          }).format(new Date(ts));
+        }
+
+        function formatDueDate(dateStr) {
+          if (!dateStr) return "";
+          const d = new Date(dateStr + "T00:00:00");
+          return new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "2-digit" }).format(d);
+        }
+
+        function isOverdue(dateStr) {
+          if (!dateStr) return false;
+          const due = new Date(dateStr + "T23:59:59");
+          return due < new Date();
+        }
+
+        /* ---- Storage ---- */
+        function loadRequests() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+          } catch { return []; }
+        }
+
+        function saveRequests(reqs) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(reqs));
+        }
+
+        function loadMembers() {
+          try {
+            const raw = localStorage.getItem(MEMBERS_KEY);
+            return raw ? JSON.parse(raw) : [];
+          } catch { return []; }
+        }
+
+        function saveMembers(members) {
+          localStorage.setItem(MEMBERS_KEY, JSON.stringify(members));
+        }
+
+        /* ---- State ---- */
+        let requests = loadRequests();
+        let members = loadMembers();
+
+        /* ---- DOM refs ---- */
+        const $ = (id) => document.getElementById(id);
+        const els = {
+          requestForm: $("requestForm"),
+          requestText: $("requestText"),
+          assignedTo: $("assignedTo"),
+          requestedBy: $("requestedBy"),
+          priority: $("priority"),
+          dueDate: $("dueDate"),
+          notes: $("notes"),
+          submitAndWhatsApp: $("submitAndWhatsApp"),
+
+          addMemberForm: $("addMemberForm"),
+          memberName: $("memberName"),
+          memberPhone: $("memberPhone"),
+          memberList: $("memberList"),
+
+          search: $("search"),
+          statusFilter: $("statusFilter"),
+          assignedFilter: $("assignedFilter"),
+          sortBy: $("sortBy"),
+          stats: $("stats"),
+          requestList: $("requestList"),
+          exportBtn: $("exportBtn"),
+          clearAllBtn: $("clearAllBtn"),
+
+          editDialog: $("editDialog"),
+          closeEditBtn: $("closeEditBtn"),
+          cancelEditBtn: $("cancelEditBtn"),
+          editForm: $("editForm"),
+          editId: $("editId"),
+          editRequest: $("editRequest"),
+          editAssignedTo: $("editAssignedTo"),
+          editRequestedBy: $("editRequestedBy"),
+          editStatus: $("editStatus"),
+          editPriority: $("editPriority"),
+          editDueDate: $("editDueDate"),
+          editNotes: $("editNotes"),
+        };
+
+        /* ---- WhatsApp ---- */
+        function buildWhatsAppMessage(req) {
+          let msg = `📋 *TAMA TEAM REQUEST*\n\n`;
+          msg += `*Request:* ${req.request}\n`;
+          msg += `*Assigned To:* ${req.assignedTo}\n`;
+          msg += `*Requested By:* ${req.requestedBy}\n`;
+          msg += `*Priority:* ${req.priority === "urgent" ? "🔴 URGENT" : "🟢 Normal"}\n`;
+          if (req.dueDate) msg += `*Due:* ${formatDueDate(req.dueDate)}\n`;
+          if (req.notes) msg += `*Notes:* ${req.notes}\n`;
+          msg += `\n_Sent from Tama Requests_`;
+          return msg;
+        }
+
+        function sendWhatsApp(req) {
+          const member = members.find(m => m.name === req.assignedTo);
+          const msg = encodeURIComponent(buildWhatsAppMessage(req));
+
+          if (member && member.phone) {
+            // Direct message to the assigned person
+            const phone = member.phone.replace(/[^0-9]/g, "");
+            window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+          } else {
+            // Generic share (user picks contact)
+            window.open(`https://wa.me/?text=${msg}`, "_blank");
+          }
+        }
+
+        /* ---- Team member dropdowns ---- */
+        function populateDropdowns() {
+          const selects = [els.assignedTo, els.requestedBy, els.editAssignedTo, els.editRequestedBy, els.assignedFilter];
+
+          selects.forEach(sel => {
+            const current = sel.value;
+            const isFilter = sel === els.assignedFilter;
+
+            // Keep placeholder / "all" option
+            while (sel.options.length > 1) sel.remove(1);
+
+            members.forEach(m => {
+              const opt = document.createElement("option");
+              opt.value = m.name;
+              opt.textContent = m.name;
+              sel.appendChild(opt);
+            });
+
+            // Restore selection
+            if (current) sel.value = current;
+          });
+        }
+
+        function renderMembers() {
+          els.memberList.innerHTML = "";
+          if (members.length === 0) {
+            els.memberList.innerHTML = '<p class="muted">No team members yet. Add some above.</p>';
+            return;
+          }
+          const ul = document.createElement("div");
+          members.forEach((m, i) => {
+            const row = document.createElement("div");
+            row.style.cssText = "display:flex;gap:0.5rem;align-items:center;padding:0.3rem 0;";
+            const info = document.createElement("span");
+            info.innerHTML = `<strong>${m.name}</strong>${m.phone ? " &middot; " + m.phone : ""}`;
+            info.style.flex = "1";
+            const del = document.createElement("button");
+            del.type = "button";
+            del.className = "secondary danger";
+            del.textContent = "Remove";
+            del.style.cssText = "padding:0.25rem 0.5rem;font-size:0.8rem;margin:0;";
+            del.addEventListener("click", () => {
+              if (!confirm(`Remove ${m.name} from the team?`)) return;
+              members.splice(i, 1);
+              saveMembers(members);
+              renderMembers();
+              populateDropdowns();
+            });
+            row.append(info, del);
+            ul.append(row);
+          });
+          els.memberList.append(ul);
+        }
+
+        /* ---- Render requests ---- */
+        function getFiltered() {
+          const q = els.search.value.toLowerCase().trim();
+          const status = els.statusFilter.value;
+          const assigned = els.assignedFilter.value;
+          const sortBy = els.sortBy.value;
+
+          let out = requests.filter(r => {
+            if (status !== "all" && r.status !== status) return false;
+            if (assigned !== "all" && r.assignedTo !== assigned) return false;
+            if (q) {
+              const hay = [r.request, r.assignedTo, r.requestedBy, r.notes].join(" ").toLowerCase();
+              if (!hay.includes(q)) return false;
+            }
+            return true;
+          });
+
+          out.sort((a, b) => {
+            if (sortBy === "newest") return b.createdAt - a.createdAt;
+            if (sortBy === "oldest") return a.createdAt - b.createdAt;
+            if (sortBy === "priority") {
+              if (a.priority === "urgent" && b.priority !== "urgent") return -1;
+              if (b.priority === "urgent" && a.priority !== "urgent") return 1;
+              return b.createdAt - a.createdAt;
+            }
+            if (sortBy === "due_soon") {
+              const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+              const db = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+              return da - db;
+            }
+            return b.createdAt - a.createdAt;
+          });
+
+          return out;
+        }
+
+        function renderRequests() {
+          const view = getFiltered();
+          const total = requests.length;
+          const pending = requests.filter(r => r.status === "pending").length;
+          const inProgress = requests.filter(r => r.status === "in-progress").length;
+          const completed = requests.filter(r => r.status === "completed").length;
+          els.stats.textContent = `${view.length} shown · ${total} total · ${pending} pending · ${inProgress} in progress · ${completed} completed`;
+
+          els.requestList.innerHTML = "";
+
+          if (view.length === 0) {
+            const p = document.createElement("p");
+            p.className = "muted";
+            p.textContent = total === 0 ? "No requests yet. Submit one above." : "No requests match your filters.";
+            els.requestList.append(p);
+            return;
+          }
+
+          view.forEach(r => {
+            const card = document.createElement("div");
+            card.className = "request-card" + (r.priority === "urgent" ? " urgent-card" : "");
+
+            // Header
+            const header = document.createElement("div");
+            header.className = "request-card-header";
+
+            const left = document.createElement("div");
+            left.className = "request-card-left";
+
+            const title = document.createElement("span");
+            title.className = "request-card-title";
+            title.textContent = r.request;
+
+            const statusPill = document.createElement("span");
+            statusPill.className = "pill " + r.status;
+            statusPill.textContent = r.status === "in-progress" ? "In Progress" : r.status.charAt(0).toUpperCase() + r.status.slice(1);
+
+            if (r.priority === "urgent") {
+              const urgPill = document.createElement("span");
+              urgPill.className = "pill urgent";
+              urgPill.textContent = "Urgent";
+              left.append(title, statusPill, urgPill);
+            } else {
+              left.append(title, statusPill);
+            }
+
+            const rightDate = document.createElement("span");
+            rightDate.className = "muted";
+            rightDate.style.fontSize = "0.85rem";
+            rightDate.textContent = formatDate(r.createdAt);
+
+            header.append(left, rightDate);
+
+            // Meta row
+            const meta = document.createElement("div");
+            meta.className = "request-card-meta";
+
+            const fromSpan = document.createElement("span");
+            fromSpan.innerHTML = `<strong>From:</strong> ${r.requestedBy}`;
+            const toSpan = document.createElement("span");
+            toSpan.innerHTML = `<strong>To:</strong> ${r.assignedTo}`;
+            meta.append(fromSpan, toSpan);
+
+            if (r.dueDate) {
+              const dueSpan = document.createElement("span");
+              const overdue = isOverdue(r.dueDate) && r.status !== "completed";
+              dueSpan.innerHTML = `<strong>Due:</strong> ${formatDueDate(r.dueDate)}`;
+              if (overdue) dueSpan.style.color = "#ef4444";
+              meta.append(dueSpan);
+            }
+
+            // Notes
+            let notesEl = null;
+            if (r.notes) {
+              notesEl = document.createElement("p");
+              notesEl.className = "request-card-body muted";
+              notesEl.textContent = r.notes;
+            }
+
+            // Actions
+            const actions = document.createElement("div");
+            actions.className = "request-actions";
+            actions.style.marginTop = "0.5rem";
+
+            if (r.status !== "completed") {
+              const nextStatus = r.status === "pending" ? "in-progress" : "completed";
+              const nextLabel = r.status === "pending" ? "Start" : "Complete";
+              const advBtn = document.createElement("button");
+              advBtn.type = "button";
+              advBtn.className = "secondary";
+              advBtn.textContent = nextLabel;
+              advBtn.addEventListener("click", () => {
+                r.status = nextStatus;
+                r.updatedAt = Date.now();
+                saveRequests(requests);
+                renderRequests();
+              });
+              actions.append(advBtn);
+            }
+
+            const waBtn = document.createElement("button");
+            waBtn.type = "button";
+            waBtn.className = "whatsapp-btn";
+            waBtn.textContent = "WhatsApp";
+            waBtn.style.cssText = "padding:0.35rem 0.75rem;font-size:0.85rem;";
+            waBtn.addEventListener("click", () => sendWhatsApp(r));
+
+            const editBtn = document.createElement("button");
+            editBtn.type = "button";
+            editBtn.className = "secondary";
+            editBtn.textContent = "Edit";
+            editBtn.addEventListener("click", () => openEdit(r.id));
+
+            const delBtn = document.createElement("button");
+            delBtn.type = "button";
+            delBtn.className = "secondary danger";
+            delBtn.textContent = "Delete";
+            delBtn.addEventListener("click", () => {
+              if (!confirm(`Delete request "${r.request}"?`)) return;
+              requests = requests.filter(x => x.id !== r.id);
+              saveRequests(requests);
+              renderRequests();
+            });
+
+            actions.append(waBtn, editBtn, delBtn);
+
+            card.append(header, meta);
+            if (notesEl) card.append(notesEl);
+            card.append(actions);
+            els.requestList.append(card);
+          });
+        }
+
+        /* ---- Edit dialog ---- */
+        function openEdit(id) {
+          const r = requests.find(x => x.id === id);
+          if (!r) return;
+          els.editId.value = r.id;
+          els.editRequest.value = r.request;
+          els.editAssignedTo.value = r.assignedTo;
+          els.editRequestedBy.value = r.requestedBy;
+          els.editStatus.value = r.status;
+          els.editPriority.value = r.priority;
+          els.editDueDate.value = r.dueDate || "";
+          els.editNotes.value = r.notes || "";
+          els.editDialog.showModal();
+        }
+
+        els.closeEditBtn.addEventListener("click", () => els.editDialog.close());
+        els.cancelEditBtn.addEventListener("click", () => els.editDialog.close());
+
+        els.editForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const id = els.editId.value;
+          const r = requests.find(x => x.id === id);
+          if (!r) return els.editDialog.close();
+
+          r.request = els.editRequest.value.trim();
+          r.assignedTo = els.editAssignedTo.value;
+          r.requestedBy = els.editRequestedBy.value;
+          r.status = els.editStatus.value;
+          r.priority = els.editPriority.value;
+          r.dueDate = els.editDueDate.value || "";
+          r.notes = els.editNotes.value.trim();
+          r.updatedAt = Date.now();
+
+          saveRequests(requests);
+          renderRequests();
+          els.editDialog.close();
+        });
+
+        /* ---- Submit request ---- */
+        function createRequest() {
+          const request = els.requestText.value.trim();
+          const assignedTo = els.assignedTo.value;
+          const requestedBy = els.requestedBy.value;
+          if (!request || !assignedTo || !requestedBy) return null;
+
+          const now = Date.now();
+          const r = {
+            id: newId(),
+            request,
+            assignedTo,
+            requestedBy,
+            status: "pending",
+            priority: els.priority.value,
+            dueDate: els.dueDate.value || "",
+            notes: els.notes.value.trim(),
+            createdAt: now,
+            updatedAt: now,
+          };
+
+          requests.unshift(r);
+          saveRequests(requests);
+          renderRequests();
+          els.requestForm.reset();
+          return r;
+        }
+
+        els.requestForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          createRequest();
+        });
+
+        els.submitAndWhatsApp.addEventListener("click", () => {
+          // Validate form manually
+          if (!els.requestForm.reportValidity()) return;
+          const r = createRequest();
+          if (r) sendWhatsApp(r);
+        });
+
+        /* ---- Add team member ---- */
+        els.addMemberForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const name = els.memberName.value.trim();
+          const phone = els.memberPhone.value.trim();
+          if (!name) return;
+          if (members.some(m => m.name.toLowerCase() === name.toLowerCase())) {
+            alert(`${name} is already on the team.`);
+            return;
+          }
+          members.push({ name, phone });
+          saveMembers(members);
+          renderMembers();
+          populateDropdowns();
+          els.memberName.value = "";
+          els.memberPhone.value = "";
+        });
+
+        /* ---- Filters ---- */
+        ["input", "change"].forEach(evt => {
+          els.search.addEventListener(evt, renderRequests);
+          els.statusFilter.addEventListener(evt, renderRequests);
+          els.assignedFilter.addEventListener(evt, renderRequests);
+          els.sortBy.addEventListener(evt, renderRequests);
+        });
+
+        /* ---- Export ---- */
+        els.exportBtn.addEventListener("click", async () => {
+          const payload = JSON.stringify(requests, null, 2);
+          try {
+            await navigator.clipboard.writeText(payload);
+            alert("Exported to clipboard.");
+          } catch {
+            prompt("Copy your exported JSON:", payload);
+          }
+        });
+
+        /* ---- Clear All ---- */
+        els.clearAllBtn.addEventListener("click", () => {
+          if (!confirm("Clear ALL requests? This cannot be undone.")) return;
+          requests = [];
+          saveRequests(requests);
+          renderRequests();
+        });
+
+        /* ---- Init ---- */
+        populateDropdowns();
+        renderMembers();
+        renderRequests();
+      })();
+    </script>
+  </body>
+</html>
