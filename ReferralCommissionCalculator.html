@@ -49,14 +49,22 @@
     font-size: 0.95rem;
   }
   input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  input:disabled { color: var(--muted); }
+  .presets { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .presets button {
+    background: var(--card2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .presets button:hover { border-color: var(--accent); }
   .tier-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end; }
   .tier-row .tname { font-weight: 600; font-size: 0.9rem; }
   .results { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .result-box {
-    background: var(--card2);
-    border-radius: 10px;
-    padding: 16px;
-  }
+  .result-box { background: var(--card2); border-radius: 10px; padding: 16px; }
   .result-box .rlabel { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
   .result-box .rval { font-size: 1.7rem; font-weight: 700; }
   .result-box .rnote { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
@@ -79,6 +87,10 @@
     font-weight: 700;
     color: #0f172a;
   }
+  .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .split .seg { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .split .seg .slab { font-size: 0.76rem; color: var(--muted); }
+  .split .seg .sval { font-size: 1.2rem; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.88rem; }
   th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--border); }
   th:first-child, td:first-child { text-align: left; }
@@ -94,14 +106,26 @@
 <body>
 <div class="wrap">
   <h1>Referral Commission Calculator</h1>
-  <p class="sub">Tiered referral partner commissions &mdash; partners graduate tiers by number of paid referrals. Compare a <strong>retroactive</strong> bump (top-tier rate applied to every past referral) against a <strong>graduated</strong> payout (each referral keeps the rate of the tier it landed in).</p>
+  <p class="sub">Tiered referral partner commissions. Each sale has a price set by the partner, a fixed HQ software cut comes off the top, and the partner earns a tier-based share of what remains &mdash; graduating 40% &rarr; 60% &rarr; 80% by number of paid referrals. Compares a <strong>retroactive</strong> bump (top-tier rate applied to every past referral) against a <strong>graduated</strong> payout.</p>
 
   <div class="card">
     <h2>Inputs</h2>
     <div class="grid">
       <div>
-        <label for="refValue">Value per referral ($)</label>
-        <input type="number" id="refValue" value="1000" min="0" step="50">
+        <label for="salePrice">Sale price per referral ($)</label>
+        <input type="number" id="salePrice" value="69" min="0" step="1">
+        <div class="presets">
+          <button type="button" data-price="69">Online &mdash; $69</button>
+          <button type="button" data-price="119">In-person &mdash; $119</button>
+        </div>
+      </div>
+      <div>
+        <label for="hqCut">HQ software cut per sale ($)</label>
+        <input type="number" id="hqCut" value="19" min="0" step="1">
+      </div>
+      <div>
+        <label for="baseDisplay">Commissionable base (sale &minus; HQ)</label>
+        <input type="number" id="baseDisplay" value="" disabled>
       </div>
       <div>
         <label for="refCount">Number of paid referrals</label>
@@ -112,25 +136,37 @@
 
   <div class="card">
     <h2>Tier setup</h2>
+    <p class="sub" style="margin:-6px 0 14px;">The partner's share of the commissionable base. Tier 3 tops out the 80/20 partner/house split.</p>
     <div class="tier-row" style="margin-bottom:14px;">
       <div><span class="tname" style="color:var(--tier1)">Tier 1</span></div>
-      <div><label for="t1rate">Commission rate (%)</label><input type="number" id="t1rate" value="40" min="0" max="100" step="1"></div>
+      <div><label for="t1rate">Partner share (%)</label><input type="number" id="t1rate" value="40" min="0" max="100" step="1"></div>
       <div><label for="t1max">Applies to referrals 1 &ndash;</label><input type="number" id="t1max" value="5" min="1" step="1"></div>
     </div>
     <div class="tier-row" style="margin-bottom:14px;">
       <div><span class="tname" style="color:var(--tier2)">Tier 2</span></div>
-      <div><label for="t2rate">Commission rate (%)</label><input type="number" id="t2rate" value="60" min="0" max="100" step="1"></div>
+      <div><label for="t2rate">Partner share (%)</label><input type="number" id="t2rate" value="60" min="0" max="100" step="1"></div>
       <div><label for="t2max">Through referral #</label><input type="number" id="t2max" value="15" min="2" step="1"></div>
     </div>
     <div class="tier-row">
       <div><span class="tname" style="color:var(--tier3)">Tier 3</span></div>
-      <div><label for="t3rate">Commission rate (%)</label><input type="number" id="t3rate" value="80" min="0" max="100" step="1"></div>
+      <div><label for="t3rate">Partner share (%)</label><input type="number" id="t3rate" value="80" min="0" max="100" step="1"></div>
       <div><label>Applies from next referral onward</label><input type="number" value="" disabled placeholder="16+"></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>Results <span id="tierBadge" class="badge" style="margin-left:8px;"></span></h2>
+    <h2>Where one sale goes <span id="tierBadge" class="badge" style="margin-left:8px;"></span></h2>
+    <p class="sub" style="margin:-6px 0 14px;">At the partner's current tier.</p>
+    <div class="split">
+      <div class="seg"><div class="slab">Sale price</div><div class="sval" id="sSale">$0</div></div>
+      <div class="seg"><div class="slab">HQ software</div><div class="sval" id="sHq">$0</div></div>
+      <div class="seg"><div class="slab">Partner</div><div class="sval" id="sPartner" style="color:var(--tier3)">$0</div></div>
+      <div class="seg"><div class="slab">House</div><div class="sval" id="sHouse">$0</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Partner earnings &mdash; graduated vs retroactive</h2>
     <div class="results">
       <div class="result-box">
         <div class="rlabel">Graduated (tiered) payout</div>
@@ -144,7 +180,7 @@
       </div>
     </div>
     <div class="diff-box">
-      <div class="dlabel">Extra cost of the retroactive bump</div>
+      <div class="dlabel">Extra paid to the partner under the retroactive bump</div>
       <div class="dval" id="diffVal">$0</div>
       <div class="dnote" id="diffNote"></div>
     </div>
@@ -154,21 +190,31 @@
     <h2>Breakdown by tier</h2>
     <table>
       <thead>
-        <tr><th>Tier</th><th>Referrals</th><th>Rate</th><th>Graduated</th><th>Retroactive</th></tr>
+        <tr><th>Tier</th><th>Referrals</th><th>Partner share</th><th>Graduated partner $</th><th>Retroactive partner $</th></tr>
       </thead>
       <tbody id="breakdownBody"></tbody>
       <tfoot>
         <tr><td>Total</td><td id="fCount">0</td><td></td><td id="fTiered">$0</td><td id="fRetro">$0</td></tr>
       </tfoot>
     </table>
+    <table style="margin-top:18px;">
+      <thead><tr><th>Across all referrals</th><th>Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Total sales revenue</td><td id="totSales">$0</td></tr>
+        <tr><td>HQ software (all sales)</td><td id="totHq">$0</td></tr>
+        <tr><td>Commissionable base (all sales)</td><td id="totBase">$0</td></tr>
+        <tr><td>House share &mdash; graduated</td><td id="totHouse">$0</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
 <script>
 (function () {
-  var ids = ["refValue","refCount","t1rate","t2rate","t3rate","t1max","t2max"];
+  var ids = ["salePrice","hqCut","refCount","t1rate","t2rate","t3rate","t1max","t2max"];
   var fmt = function (n) {
-    return "$" + Math.round(n).toLocaleString("en-US");
+    var r = Math.round(n * 100) / 100;
+    return "$" + r.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   };
   var num = function (id) {
     var v = parseFloat(document.getElementById(id).value);
@@ -176,7 +222,9 @@
   };
 
   function calc() {
-    var value = Math.max(0, num("refValue"));
+    var salePrice = Math.max(0, num("salePrice"));
+    var hqCut = Math.max(0, num("hqCut"));
+    var base = Math.max(0, salePrice - hqCut);
     var count = Math.max(0, Math.floor(num("refCount")));
     var rates = [num("t1rate") / 100, num("t2rate") / 100, num("t3rate") / 100];
     var t1max = Math.max(1, Math.floor(num("t1max")));
@@ -184,7 +232,8 @@
     var tierColors = ["var(--tier1)", "var(--tier2)", "var(--tier3)"];
     var tierNames = ["Tier 1", "Tier 2", "Tier 3"];
 
-    // tier index (0,1,2) for a 1-based referral position
+    document.getElementById("baseDisplay").value = base.toFixed(2);
+
     function tierOf(pos) {
       if (pos <= t1max) return 0;
       if (pos <= t2max) return 1;
@@ -197,17 +246,22 @@
     for (var i = 1; i <= count; i++) {
       var t = tierOf(i);
       counts[t]++;
-      tieredTotal += value * rates[t];
+      tieredTotal += base * rates[t];
     }
 
     // Retroactive: the partner's CURRENT tier rate applies to every referral.
     var currentTier = count > 0 ? tierOf(count) : 0;
     var retroRate = rates[currentTier];
-    var retroTotal = count * value * retroRate;
-
+    var retroTotal = count * base * retroRate;
     var diff = retroTotal - tieredTotal;
 
-    // Render results
+    // Where one sale goes, at the current tier.
+    document.getElementById("sSale").textContent = fmt(salePrice);
+    document.getElementById("sHq").textContent = fmt(hqCut);
+    document.getElementById("sPartner").textContent = fmt(base * retroRate);
+    document.getElementById("sHouse").textContent = fmt(base * (1 - retroRate));
+
+    // Earnings
     document.getElementById("tieredTotal").textContent = fmt(tieredTotal);
     document.getElementById("retroTotal").textContent = fmt(retroTotal);
     document.getElementById("retroNote").textContent =
@@ -222,26 +276,26 @@
     document.getElementById("diffNote").textContent =
       diff === 0
         ? "Both models pay the same — partner is still in Tier 1, or rates are equal."
-        : "Retroactive pays " + (diff >= 0 ? "" : "") + pct.toFixed(1) +
-          "% " + (diff >= 0 ? "more" : "less") + " than the graduated model.";
+        : "Retroactive pays " + pct.toFixed(1) + "% " +
+          (diff >= 0 ? "more" : "less") + " than the graduated model.";
 
     var badge = document.getElementById("tierBadge");
     badge.textContent = count > 0 ? "Currently in " + tierNames[currentTier] : "No referrals";
     badge.style.background = getComputedStyle(document.documentElement)
       .getPropertyValue(count > 0 ? "--tier" + (currentTier + 1) : "--muted").trim() || "#94a3b8";
 
-    // Breakdown table
+    // Breakdown by tier
     var body = document.getElementById("breakdownBody");
     body.innerHTML = "";
-    for (var t = 0; t < 3; t++) {
+    for (var t2 = 0; t2 < 3; t2++) {
       var tr = document.createElement("tr");
-      var gradEarn = counts[t] * value * rates[t];
-      var retroEarn = counts[t] * value * retroRate;
+      var gradEarn = counts[t2] * base * rates[t2];
+      var retroEarn = counts[t2] * base * retroRate;
       tr.innerHTML =
-        '<td><span class="swatch" style="background:' + tierColors[t] + '"></span>' +
-          tierNames[t] + " (" + (rates[t] * 100) + "%)</td>" +
-        "<td>" + counts[t] + "</td>" +
-        "<td>" + (rates[t] * 100) + "%</td>" +
+        '<td><span class="swatch" style="background:' + tierColors[t2] + '"></span>' +
+          tierNames[t2] + "</td>" +
+        "<td>" + counts[t2] + "</td>" +
+        "<td>" + (rates[t2] * 100) + "%</td>" +
         "<td>" + fmt(gradEarn) + "</td>" +
         "<td>" + fmt(retroEarn) + "</td>";
       body.appendChild(tr);
@@ -249,10 +303,22 @@
     document.getElementById("fCount").textContent = count;
     document.getElementById("fTiered").textContent = fmt(tieredTotal);
     document.getElementById("fRetro").textContent = fmt(retroTotal);
+
+    // Totals
+    document.getElementById("totSales").textContent = fmt(count * salePrice);
+    document.getElementById("totHq").textContent = fmt(count * hqCut);
+    document.getElementById("totBase").textContent = fmt(count * base);
+    document.getElementById("totHouse").textContent = fmt(count * base - tieredTotal);
   }
 
   ids.forEach(function (id) {
     document.getElementById(id).addEventListener("input", calc);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".presets button"), function (b) {
+    b.addEventListener("click", function () {
+      document.getElementById("salePrice").value = b.getAttribute("data-price");
+      calc();
+    });
   });
   calc();
 })();
