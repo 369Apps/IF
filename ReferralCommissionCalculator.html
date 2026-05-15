@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Referral Commission Calculator</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --tier1: #fbbf24;
+    --tier2: #fb923c;
+    --tier3: #34d399;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 0.92rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 1.05rem; margin: 0 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 4px; }
+  input[type="number"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 0.95rem;
+  }
+  input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .tier-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end; }
+  .tier-row .tname { font-weight: 600; font-size: 0.9rem; }
+  .results { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .result-box {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .result-box .rlabel { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+  .result-box .rval { font-size: 1.7rem; font-weight: 700; }
+  .result-box .rnote { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+  .diff-box {
+    background: linear-gradient(135deg, #0c4a6e, #075985);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 18px;
+    margin-top: 16px;
+    text-align: center;
+  }
+  .diff-box .dlabel { font-size: 0.85rem; color: #bae6fd; }
+  .diff-box .dval { font-size: 2.1rem; font-weight: 800; color: #fff; margin: 4px 0; }
+  .diff-box .dnote { font-size: 0.82rem; color: #bae6fd; }
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.88rem; }
+  th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  tfoot td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--border); }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+  @media (max-width: 560px) {
+    .results { grid-template-columns: 1fr; }
+    .tier-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Referral Commission Calculator</h1>
+  <p class="sub">Tiered referral partner commissions &mdash; partners graduate tiers by number of paid referrals. Compare a <strong>retroactive</strong> bump (top-tier rate applied to every past referral) against a <strong>graduated</strong> payout (each referral keeps the rate of the tier it landed in).</p>
+
+  <div class="card">
+    <h2>Inputs</h2>
+    <div class="grid">
+      <div>
+        <label for="refValue">Value per referral ($)</label>
+        <input type="number" id="refValue" value="1000" min="0" step="50">
+      </div>
+      <div>
+        <label for="refCount">Number of paid referrals</label>
+        <input type="number" id="refCount" value="20" min="0" step="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tier setup</h2>
+    <div class="tier-row" style="margin-bottom:14px;">
+      <div><span class="tname" style="color:var(--tier1)">Tier 1</span></div>
+      <div><label for="t1rate">Commission rate (%)</label><input type="number" id="t1rate" value="40" min="0" max="100" step="1"></div>
+      <div><label for="t1max">Applies to referrals 1 &ndash;</label><input type="number" id="t1max" value="5" min="1" step="1"></div>
+    </div>
+    <div class="tier-row" style="margin-bottom:14px;">
+      <div><span class="tname" style="color:var(--tier2)">Tier 2</span></div>
+      <div><label for="t2rate">Commission rate (%)</label><input type="number" id="t2rate" value="60" min="0" max="100" step="1"></div>
+      <div><label for="t2max">Through referral #</label><input type="number" id="t2max" value="15" min="2" step="1"></div>
+    </div>
+    <div class="tier-row">
+      <div><span class="tname" style="color:var(--tier3)">Tier 3</span></div>
+      <div><label for="t3rate">Commission rate (%)</label><input type="number" id="t3rate" value="80" min="0" max="100" step="1"></div>
+      <div><label>Applies from next referral onward</label><input type="number" value="" disabled placeholder="16+"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Results <span id="tierBadge" class="badge" style="margin-left:8px;"></span></h2>
+    <div class="results">
+      <div class="result-box">
+        <div class="rlabel">Graduated (tiered) payout</div>
+        <div class="rval" id="tieredTotal">$0</div>
+        <div class="rnote">Each referral earns the rate of the tier it fell into.</div>
+      </div>
+      <div class="result-box">
+        <div class="rlabel">Retroactive payout</div>
+        <div class="rval" id="retroTotal">$0</div>
+        <div class="rnote" id="retroNote">Current tier rate applied to every referral.</div>
+      </div>
+    </div>
+    <div class="diff-box">
+      <div class="dlabel">Extra cost of the retroactive bump</div>
+      <div class="dval" id="diffVal">$0</div>
+      <div class="dnote" id="diffNote"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Breakdown by tier</h2>
+    <table>
+      <thead>
+        <tr><th>Tier</th><th>Referrals</th><th>Rate</th><th>Graduated</th><th>Retroactive</th></tr>
+      </thead>
+      <tbody id="breakdownBody"></tbody>
+      <tfoot>
+        <tr><td>Total</td><td id="fCount">0</td><td></td><td id="fTiered">$0</td><td id="fRetro">$0</td></tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<script>
+(function () {
+  var ids = ["refValue","refCount","t1rate","t2rate","t3rate","t1max","t2max"];
+  var fmt = function (n) {
+    return "$" + Math.round(n).toLocaleString("en-US");
+  };
+  var num = function (id) {
+    var v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) ? 0 : v;
+  };
+
+  function calc() {
+    var value = Math.max(0, num("refValue"));
+    var count = Math.max(0, Math.floor(num("refCount")));
+    var rates = [num("t1rate") / 100, num("t2rate") / 100, num("t3rate") / 100];
+    var t1max = Math.max(1, Math.floor(num("t1max")));
+    var t2max = Math.max(t1max + 1, Math.floor(num("t2max")));
+    var tierColors = ["var(--tier1)", "var(--tier2)", "var(--tier3)"];
+    var tierNames = ["Tier 1", "Tier 2", "Tier 3"];
+
+    // tier index (0,1,2) for a 1-based referral position
+    function tierOf(pos) {
+      if (pos <= t1max) return 0;
+      if (pos <= t2max) return 1;
+      return 2;
+    }
+
+    // Graduated: each referral keeps its own tier rate.
+    var tieredTotal = 0;
+    var counts = [0, 0, 0];
+    for (var i = 1; i <= count; i++) {
+      var t = tierOf(i);
+      counts[t]++;
+      tieredTotal += value * rates[t];
+    }
+
+    // Retroactive: the partner's CURRENT tier rate applies to every referral.
+    var currentTier = count > 0 ? tierOf(count) : 0;
+    var retroRate = rates[currentTier];
+    var retroTotal = count * value * retroRate;
+
+    var diff = retroTotal - tieredTotal;
+
+    // Render results
+    document.getElementById("tieredTotal").textContent = fmt(tieredTotal);
+    document.getElementById("retroTotal").textContent = fmt(retroTotal);
+    document.getElementById("retroNote").textContent =
+      count > 0
+        ? "All " + count + " referrals paid at the " + tierNames[currentTier] +
+          " rate (" + (retroRate * 100) + "%)."
+        : "No referrals yet.";
+
+    document.getElementById("diffVal").textContent =
+      (diff >= 0 ? "+" : "−") + fmt(Math.abs(diff));
+    var pct = tieredTotal > 0 ? (diff / tieredTotal) * 100 : 0;
+    document.getElementById("diffNote").textContent =
+      diff === 0
+        ? "Both models pay the same — partner is still in Tier 1, or rates are equal."
+        : "Retroactive pays " + (diff >= 0 ? "" : "") + pct.toFixed(1) +
+          "% " + (diff >= 0 ? "more" : "less") + " than the graduated model.";
+
+    var badge = document.getElementById("tierBadge");
+    badge.textContent = count > 0 ? "Currently in " + tierNames[currentTier] : "No referrals";
+    badge.style.background = getComputedStyle(document.documentElement)
+      .getPropertyValue(count > 0 ? "--tier" + (currentTier + 1) : "--muted").trim() || "#94a3b8";
+
+    // Breakdown table
+    var body = document.getElementById("breakdownBody");
+    body.innerHTML = "";
+    for (var t = 0; t < 3; t++) {
+      var tr = document.createElement("tr");
+      var gradEarn = counts[t] * value * rates[t];
+      var retroEarn = counts[t] * value * retroRate;
+      tr.innerHTML =
+        '<td><span class="swatch" style="background:' + tierColors[t] + '"></span>' +
+          tierNames[t] + " (" + (rates[t] * 100) + "%)</td>" +
+        "<td>" + counts[t] + "</td>" +
+        "<td>" + (rates[t] * 100) + "%</td>" +
+        "<td>" + fmt(gradEarn) + "</td>" +
+        "<td>" + fmt(retroEarn) + "</td>";
+      body.appendChild(tr);
+    }
+    document.getElementById("fCount").textContent = count;
+    document.getElementById("fTiered").textContent = fmt(tieredTotal);
+    document.getElementById("fRetro").textContent = fmt(retroTotal);
+  }
+
+  ids.forEach(function (id) {
+    document.getElementById(id).addEventListener("input", calc);
+  });
+  calc();
+})();
+</script>
+</body>
+</html>
