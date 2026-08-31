@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FDE Interview Prep — Field Manual</title>
+  <style>
+    :root {
+      --bg: #10140f;
+      --panel: #171c16;
+      --panel-2: #1e251c;
+      --ink: #e7e1cf;
+      --muted: #9a937c;
+      --line: #2c3528;
+      --brass: #c4a35a;
+      --brass-dim: #8a7038;
+      --field: #7d9b6a;
+      --field-dim: #4e6644;
+      --warn: #c45c4a;
+      --ok: #8fbf72;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      --serif: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+      --sans: "Segoe UI", system-ui, sans-serif;
+      --rail: 248px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15.5px;
+      line-height: 1.55;
+      display: grid;
+      grid-template-columns: var(--rail) 1fr;
+      min-height: 100vh;
+    }
+    button, textarea, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--brass); }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      background: #0c100c;
+      border-right: 1px solid var(--line);
+      padding: 22px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .mark {
+      font-family: var(--serif);
+      font-size: 20px;
+      letter-spacing: 0.02em;
+      margin: 0 0 2px;
+    }
+    .mark span { color: var(--brass); }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .nav-btn {
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-left: 2px solid transparent;
+      padding: 8px 10px;
+      color: var(--muted);
+      border-radius: 0 6px 6px 0;
+    }
+    .nav-btn:hover { color: var(--ink); background: var(--panel); }
+    .nav-btn.active {
+      color: var(--ink);
+      background: var(--panel-2);
+      border-left-color: var(--brass);
+    }
+    .nav-btn small {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .rail-foot {
+      margin-top: auto;
+      padding-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .progress-bar {
+      height: 4px;
+      background: var(--line);
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-bar > i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--brass);
+    }
+
+    main {
+      min-width: 0;
+      padding: 28px 36px 80px;
+    }
+    .wrap { max-width: 920px; }
+    section.view { display: none; }
+    section.view.on { display: block; }
+
+    h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: 0.01em; }
+    h1 { font-size: 34px; line-height: 1.15; margin: 0 0 10px; }
+    h2 { font-size: 22px; margin: 28px 0 10px; }
+    h3 { font-size: 17px; margin: 18px 0 8px; }
+    p { color: #d8d2c0; }
+    .lede { font-size: 17px; color: var(--ink); max-width: 44em; }
+    .kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--brass);
+      margin-bottom: 8px;
+    }
+
+    .grid-3, .grid-2 { display: grid; gap: 12px; }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .card h3 { margin-top: 0; }
+    .card p:last-child { margin-bottom: 0; }
+    .stat {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--brass);
+      margin-bottom: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 10px 8px 0;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    .callout {
+      border-left: 3px solid var(--brass);
+      background: var(--panel);
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.ok { border-left-color: var(--field); }
+
+    .moves { counter-reset: mv; display: grid; gap: 10px; }
+    .move {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .move .n {
+      font-family: var(--serif);
+      font-size: 22px;
+      color: var(--brass);
+      line-height: 1.1;
+    }
+    .move strong { display: block; margin-bottom: 4px; }
+
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+    .tab, .btn, .ghost {
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      padding: 7px 12px;
+      color: var(--ink);
+    }
+    .tab.active, .btn.primary {
+      background: var(--brass);
+      color: #1a1408;
+      border-color: var(--brass);
+      font-weight: 650;
+    }
+    .btn.danger { background: #3a1f1c; border-color: #6a3530; }
+    .ghost { background: transparent; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .ladder { display: none; }
+    .ladder.on { display: block; }
+    .tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+    .tag.bad { background: #3a1f1c; color: #e8a399; }
+    .tag.good { background: #2a3320; color: #c9d9a8; }
+    .tag.great { background: #24301c; color: #b7e08a; }
+
+    .prompt-box {
+      background: #0d120c;
+      border: 1px dashed var(--brass-dim);
+      border-radius: 10px;
+      padding: 16px 18px;
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.4;
+      margin: 12px 0;
+    }
+    .timer {
+      font-family: var(--mono);
+      font-size: 28px;
+      color: var(--brass);
+      letter-spacing: 0.08em;
+    }
+    .timer.hot { color: var(--warn); }
+    textarea, .code {
+      width: 100%;
+      min-height: 160px;
+      background: #0c100c;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      resize: vertical;
+      color: var(--ink);
+    }
+    .code {
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.45;
+      min-height: 280px;
+      white-space: pre;
+      tab-size: 2;
+    }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .muted { color: var(--muted); }
+    .mono { font-family: var(--mono); font-size: 12.5px; }
+    ul.tight li { margin: 4px 0; }
+    .hidden { display: none !important; }
+
+    .test-row {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .pass { color: var(--ok); }
+    .fail { color: #e8a399; }
+
+    .check {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 8px 0;
+    }
+    .check input { margin-top: 4px; }
+
+    .story {
+      display: grid;
+      gap: 8px;
+    }
+    .story label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .story input, .story textarea {
+      min-height: 0;
+      height: 40px;
+    }
+    .story textarea { min-height: 72px; height: auto; }
+
+    .plan-week { margin-bottom: 8px; }
+    pre.doc {
+      background: #0c100c;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      overflow: auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #d4ccb4;
+    }
+
+    @media (max-width: 860px) {
+      body { grid-template-columns: 1fr; }
+      .rail { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      main { padding: 20px 16px 64px; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="rail">
+    <p class="mark">Field <span>Manual</span></p>
+    <div class="eyebrow">FDE interview prep</div>
+    <button class="nav-btn active" data-view="home">Brief<small>What this loop actually grades</small></button>
+    <button class="nav-btn" data-view="loops">Company loops<small>Palantir · OpenAI · others</small></button>
+    <button class="nav-btn" data-view="decomp">Decomposition<small>Timed case drills</small></button>
+    <button class="nav-btn" data-view="coding">Coding gate<small>Practical problems + tests</small></button>
+    <button class="nav-btn" data-view="learning">Learning round<small>Unfamiliar code + a bug</small></button>
+    <button class="nav-btn" data-view="client">Client room<small>Push back, recover, translate</small></button>
+    <button class="nav-btn" data-view="design">AI system design<small>Evals, RAG, rollout</small></button>
+    <button class="nav-btn" data-view="behavioral">Values<small>Failure, why here, stories</small></button>
+    <button class="nav-btn" data-view="plan">Four-week plan<small>Hours that move the loop</small></button>
+    <div class="rail-foot">
+      <div id="progressLabel">0 / 24 checkpoints</div>
+      <div class="progress-bar"><i id="progressFill"></i></div>
+      Progress saves in this browser.
+    </div>
+  </aside>
+
+  <main>
+    <div class="wrap">
+
+      <section class="view on" id="home">
+        <div class="kicker">Forward deployed engineer</div>
+        <h1>The loop grades whether you can own a customer outcome, not whether you can invert a tree.</h1>
+        <p class="lede">An FDE writes production code on someone else’s infrastructure, in a problem that was underspecified on Monday and on fire by Thursday. Interviews follow the job: structure ambiguity out loud, get useful in a stack you have never seen, and defend a design a skeptical operator would actually use.</p>
+
+        <div class="grid-3" style="margin-top:22px">
+          <article class="card">
+            <div class="stat">Signal 1</div>
+            <h3>Decomposition</h3>
+            <p>Vague prompt. No spec. You name the user, the number they are measured on, the hard part, and a thin slice — before any architecture diagram.</p>
+          </article>
+          <article class="card">
+            <div class="stat">Signal 2</div>
+            <h3>Useful by afternoon</h3>
+            <p>Learning and re-engineering rounds drop you into unfamiliar docs or a buggy 200-line module. Trace one path. Hypothesize. Then touch code.</p>
+          </article>
+          <article class="card">
+            <div class="stat">Signal 3</div>
+            <h3>Production judgment</h3>
+            <p>Evals, guardrails, cost, stale data, and “what if they ignore the recommendation.” Demo-shaped answers fail. Shipped-shaped answers pass.</p>
+          </article>
+        </div>
+
+        <div class="callout" style="margin-top:20px">
+          <strong>Where hours should go.</strong> Keep a coding floor (hash maps, graphs, grouping messy events, SQL). Spend the real reps on timed decomposition out loud, a learning-round debug, and a “why this company” answer that could not be pasted onto a different employer. Silence is ungradable. Narrate.
+        </div>
+
+        <h2>How to use this kit</h2>
+        <ol>
+          <li>Read the company loop you are actually walking into. Formats drift — confirm with the recruiter.</li>
+          <li>Run one decomposition drill on a five-minute timer, out loud, then grade yourself against the five moves. Do not read the worked examples and call it practice.</li>
+          <li>Clear the three coding problems until the tests go green without peeking.</li>
+          <li>Do the Ledger learning task: read the docs, reproduce the bug, then fix it.</li>
+          <li>Write the five behavioral stories into the cards. They persist locally.</li>
+        </ol>
+      </section>
+
+      <section class="view" id="loops">
+        <div class="kicker">Map</div>
+        <h1>Company loops</h1>
+        <p class="lede">The shape is stable even when names change: a coding gate, an ambiguous case, a “get useful fast” round, and a values conversation. Treat your recruiter’s brief as the authority.</p>
+
+        <h2>Palantir — FDSE</h2>
+        <table>
+          <thead><tr><th>Stage</th><th>What it tests</th></tr></thead>
+          <tbody>
+            <tr><td>Recruiter ~30m</td><td>Why Palantir, why forward-deployed, a project you owned end to end.</td></tr>
+            <tr><td>Technical screen</td><td>Practical coding (graphs, rollups, sometimes SQL). Working, readable code is the gate.</td></tr>
+            <tr><td>Decomposition</td><td>The signature round. Vague operational problem. Process over product.</td></tr>
+            <tr><td>Learning / re-engineering</td><td>Unfamiliar API or a buggy module. Read, trace, extend without breaking behavior.</td></tr>
+            <tr><td>Hiring manager</td><td>Real failure (not a humblebrag), mission, comfort with who the customers are.</td></tr>
+          </tbody>
+        </table>
+        <p class="muted">Decomposition <em>is</em> often the design round here. Classic “design Twitter at scale” is uncommon. Data integration, trust, and operational constraints are the center.</p>
+
+        <h2>OpenAI — FDE</h2>
+        <table>
+          <thead><tr><th>Stage</th><th>What it tests</th></tr></thead>
+          <tbody>
+            <tr><td>Recruiter</td><td>Why forward-deployed, not why “AI is exciting.”</td></tr>
+            <tr><td>Take-home (~few hours)</td><td>A real artifact on the APIs plus a recorded walkthrough. Graded as a customer demo.</td></tr>
+            <tr><td>Technical deep dive</td><td>Defend the take-home. Evals, RAG vs fine-tune, guardrails, cost/latency.</td></tr>
+            <tr><td>Solution design</td><td>Open customer brief → sequenced plan that survives production.</td></tr>
+            <tr><td>Hiring manager / values</td><td>Ambiguity, customer-facing scars, mission fit.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout ok">
+          Strong take-homes include a small labeled eval, a data boundary, honest cost/latency notes, and a week-one rollout — not a kitchen-sink agent.
+        </div>
+
+        <h2>Anthropic-style and startup FDE</h2>
+        <p>Live coding is often practical and escalating: a simple version must survive the second and third requirement. Docs and search are frequently allowed. Values/mission rounds are failable. Startup loops compress the same signals into fewer hours: one coding session, one case, one founder conversation.</p>
+
+        <h2>Four things graded in every room</h2>
+        <ul>
+          <li>Own the <strong>customer number</strong>, not the artifact.</li>
+          <li>Translate to cost, risk, and ROI without being asked.</li>
+          <li>Name what breaks in production before the interviewer does.</li>
+          <li>Commit to a position, name the tradeoff, update if the pushback is right.</li>
+        </ul>
+      </section>
+
+      <section class="view" id="decomp">
+        <div class="kicker">Signature round</div>
+        <h1>Decomposition</h1>
+        <p class="lede">You are handed a vague, often non-software problem. The interviewer can only grade what you say. The mistake almost everyone makes is jumping to a product in the first minute.</p>
+
+        <h2>Five moves — say them in this order</h2>
+        <div class="moves">
+          <div class="move"><div class="n">1</div><div><strong>User and outcome</strong>Who is in pain, and what number are they measured on? Not “an app.” A dispatcher’s time-to-dispatch. A nurse’s hours after shift.</div></div>
+          <div class="move"><div class="n">2</div><div><strong>Assumptions, out loud, then check</strong>State what you are taking as true and what you are scoping out. Ask two or three questions that would change the design — not a questionnaire.</div></div>
+          <div class="move"><div class="n">3</div><div><strong>Sub-problems of the problem</strong>Three to five parts of the underlying problem, never phases of a build (ingest / model / dashboard is a build plan, not a decomposition).</div></div>
+          <div class="move"><div class="n">4</div><div><strong>The hard part</strong>The sub-problem where a miss sinks the outcome. Safety, trust, adoption, a join that will not join. Defend why it is hard.</div></div>
+          <div class="move"><div class="n">5</div><div><strong>Thin slice + how you would know it is wrong</strong>One concrete first version that is useful alone. Name the metric and the failure that would kill it. Then stop talking in hypotheticals.</div></div>
+        </div>
+
+        <div class="callout warn">
+          If they say “you have been structuring a while — give me something concrete,” that is a test, not impatience. Commit: “Here is version one, and here is why the hard part drove it.”
+        </div>
+
+        <h2>Worked example</h2>
+        <p class="muted">Prompt: a city wants to cut emergency dispatch times in half using “our platform.”</p>
+        <div class="tabs" id="ladderTabs">
+          <button class="tab active" data-ladder="bad">Bad</button>
+          <button class="tab" data-ladder="good">Good</button>
+          <button class="tab" data-ladder="great">Great</button>
+        </div>
+        <div class="ladder on" id="ladder-bad">
+          <span class="tag bad">Bad</span>
+          <p>“I’d put a classifier on the 911 audio and a dashboard that auto-assigns the nearest unit.” You picked a model and a UI before you knew which interval they mean, who the user is, or whether the data joins. Every later decision now sits on a guess.</p>
+        </div>
+        <div class="ladder" id="ladder-good">
+          <span class="tag good">Good</span>
+          <p>You ask: call-answer to dispatch, or dispatch to on-scene? Who sits in the chair — call taker or dispatcher? What is the baseline, average or tail? Then you sketch CAD + GPS + a map. Real questions, still mostly designing a product. You have not named the failure that actually kills deployments: a recommendation nobody trusts, or a map that lies with stale GPS.</p>
+        </div>
+        <div class="ladder" id="ladder-great">
+          <span class="tag great">Great</span>
+          <p>The user is the dispatcher. The outcome is the right unit moving sooner, measured as dispatch interval by incident type — and misroutes must not rise. Sub-problems: understand the call, know unit state, choose a unit, recover when that unit is wrong or unavailable. The hard part is not the map; it is acting on dirty, late data without silently lying, because a stale location is worse than no location. Thin slice: two weeks, one district, live unit status plus an incident clock, staleness visible, no model. I would know it is working if dispatchers keep it open during a shift and interval starts moving before we touch routing. Optimization comes after the picture is trusted.</p>
+        </div>
+
+        <h2>Timed drill</h2>
+        <p>Five minutes. Out loud. Notes are optional; the grade is whether the five moves happened.</p>
+        <div class="row">
+          <div class="timer" id="decompTimer">5:00</div>
+          <button class="btn primary" id="timerStart">Start</button>
+          <button class="ghost" id="timerPause">Pause</button>
+          <button class="ghost" id="timerReset">Reset</button>
+          <button class="ghost" id="nextPrompt">Next prompt</button>
+        </div>
+        <div class="prompt-box" id="decompPrompt"></div>
+        <textarea id="decompNotes" placeholder="Scratch pad — keep talking even while you write."></textarea>
+        <h3>Grade this rep</h3>
+        <div id="decompRubric"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="saveDecomp">Save score</button>
+          <span class="muted" id="decompSaved"></span>
+        </div>
+        <p class="muted" id="decompCount"></p>
+
+        <h2>AI interviewer prompt</h2>
+        <p>Paste into a capable chat (voice mode if you have it). Then send a prompt from the bank, or let it pick.</p>
+        <pre class="doc" id="aiPrompt"></pre>
+        <button class="ghost" id="copyPrompt">Copy prompt</button>
+      </section>
+
+      <section class="view" id="coding">
+        <div class="kicker">The gate</div>
+        <h1>Coding screen</h1>
+        <p class="lede">Practical, user-context problems. Hash maps, graphs, grouping events, a DAG. Write the simple version first so the follow-up does not force a rewrite. Narrate. Skip the dynamic-programming deep end unless a specific loop asks for it.</p>
+        <div class="tabs" id="codeTabs"></div>
+        <article class="card" id="codeProblem"></article>
+        <p class="mono muted" style="margin-top:12px">Implement the named function. <code>console.log</code> appears below the tests.</p>
+        <textarea class="code" id="codeEditor" spellcheck="false"></textarea>
+        <div class="row" style="margin:10px 0">
+          <button class="btn primary" id="runTests">Run tests</button>
+          <button class="ghost" id="revealSol">Reveal solution</button>
+          <button class="ghost" id="resetCode">Reset starter</button>
+        </div>
+        <div id="testOut"></div>
+        <pre class="doc hidden" id="codeConsole"></pre>
+      </section>
+
+      <section class="view" id="learning">
+        <div class="kicker">Get useful fast</div>
+        <h1>Learning round — the Ledger</h1>
+        <p class="lede">You have been dropped into a customer module you have never seen. Docs are short and slightly wrong-feeling, like real vendor docs. Trace one path. Form a hypothesis. Reproduce the failure. Then change the smallest thing.</p>
+
+        <h2>Frame</h2>
+        <ol>
+          <li>Reproduce the reported behavior before editing.</li>
+          <li>Trace <em>one</em> execution path, not the whole file.</li>
+          <li>Hypothesize where the relevant logic lives and what you will find.</li>
+          <li>Make the smallest change that tests the hypothesis.</li>
+          <li>Say what you would do with more time.</li>
+        </ol>
+
+        <h2>The brief</h2>
+        <div class="prompt-box">Ops says delayed-shipment counts in the morning report are roughly 2× reality after we turned on “replay catch-up” last week. The dashboard calls <span class="mono">summarize(events, now)</span>. Fix it without breaking live (non-replay) events. Do not rewrite the module.</div>
+
+        <h3>Ledger.md — what they handed you</h3>
+        <pre class="doc">Ledger is a tiny event fold used by dispatch.
+
+Events:
+  { id, status, ts, loc, kind? }
+  status: PICKED_UP | IN_TRANSIT | DELAYED | DELIVERED
+  kind:  (omit) live event
+         "replay"  — a catch-up copy of an event the link dropped.
+                     Same id + status + ts + loc as the original.
+
+summarize(events, now) → {
+  shipments: { [id]: { status, loc, ts } },   // latest live state per id
+  delayed:   number                           // ids whose latest state is
+                                              // DELAYED and (now - ts) >= 48h
+}
+
+Replays must not change counts or overwrite a newer live state.
+Ignore unknown statuses.
+Do not mutate the input array or its objects.</pre>
+
+        <p class="mono muted">Starter is the customer’s current function. Tests encode the bug report plus the live-event cases that must keep working.</p>
+        <textarea class="code" id="learnEditor" spellcheck="false"></textarea>
+        <div class="row" style="margin:10px 0">
+          <button class="btn primary" id="runLearn">Run tests</button>
+          <button class="ghost" id="revealLearn">Reveal the defect</button>
+        </div>
+        <div id="learnOut"></div>
+        <div class="callout hidden" id="learnHint"></div>
+      </section>
+
+      <section class="view" id="client">
+        <div class="kicker">Graded in every round</div>
+        <h1>The client room</h1>
+        <p class="lede">Scope the ask, climb to the outcome, say no with a reason, and put risk in the customer’s units. Then commit.</p>
+        <div class="tabs" id="clientTabs"></div>
+        <article class="card">
+          <p id="clientScene" class="lede" style="font-size:16px"></p>
+          <p class="muted" id="clientAsk"></p>
+          <textarea id="clientNotes" placeholder="What do you say, in order?"></textarea>
+          <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="revealClient">Show a strong pass</button>
+            <button class="ghost" id="markClient">Mark practiced</button>
+          </div>
+          <div class="callout ok hidden" id="clientAnswer"></div>
+        </article>
+      </section>
+
+      <section class="view" id="design">
+        <div class="kicker">Frontier-lab flavor</div>
+        <h1>AI system design</h1>
+        <p class="lede">Lead with how you would know it is correct and how you bound failure. Architecture comes after the eval. A model is a component, not a plan.</p>
+        <div class="moves">
+          <div class="move"><div class="n">1</div><div><strong>Golden set before the model</strong>Who labels it, how big for v1 (often ~50–100), what a pass looks like, and which failures are launch-blocking vs. annoying.</div></div>
+          <div class="move"><div class="n">2</div><div><strong>Split the pipeline</strong>Retrieval quality vs generation quality vs tool success. One blended “accuracy” number hides the break.</div></div>
+          <div class="move"><div class="n">3</div><div><strong>Guardrails and data boundary</strong>What the model must not say or do; where customer data lives; who can see traces.</div></div>
+          <div class="move"><div class="n">4</div><div><strong>Cost, latency, fallback</strong>The path when retrieval is empty, the vendor is down, or the user is the veteran who will never open a chatbot.</div></div>
+          <div class="move"><div class="n">5</div><div><strong>Week-one slice</strong>Shadow mode, one workflow, human in the loop. How you decide to take the training wheels off.</div></div>
+        </div>
+        <div class="tabs" id="designTabs"></div>
+        <article class="card" id="designCase"></article>
+      </section>
+
+      <section class="view" id="behavioral">
+        <div class="kicker">Failable on purpose</div>
+        <h1>Values and hiring manager</h1>
+        <p class="lede">Generic enthusiasm fails. Palantir’s own advice is to understand the business and to tell a real failure. Write specifics. These cards stay in localStorage.</p>
+
+        <div class="callout">
+          <strong>Why this company — ladder.</strong> Bad: any employer’s name would still parse. Good: named product + your actual work. Great: a thesis about where you create value, plus the costs of the role (travel, customer-owned timelines, who the work is for) that you are choosing with open eyes.
+        </div>
+
+        <div class="tabs" id="storyTabs"></div>
+        <div class="card story" id="storyCard"></div>
+        <p class="muted" id="storyStatus"></p>
+      </section>
+
+      <section class="view" id="plan">
+        <div class="kicker">Prep</div>
+        <h1>Four weeks, weighted correctly</h1>
+        <p class="lede">Compress if you have less time: keep the coding floor, then spend remaining hours on timed decomposition and a real failure story. Silent recognition is not interview performance. Record yourself.</p>
+        <div id="planList"></div>
+        <h2>Self-check</h2>
+        <p>Honest answers. If you cannot do these out loud today, that is the drill, not a reason to open another LeetCode list.</p>
+        <div id="selfCheck"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    const STORE_KEY = "fde-prep-v1";
+    const $ = (id) => document.getElementById(id);
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }
+      catch { return {}; }
+    }
+    function save(patch) {
+      const s = Object.assign(load(), patch);
+      localStorage.setItem(STORE_KEY, JSON.stringify(s));
+      renderProgress();
+      return s;
+    }
+
+    const CHECKPOINTS = [
+      "read-home", "read-loops",
+      "decomp-1", "decomp-2", "decomp-3",
+      "code-stations", "code-shipments", "code-schedule",
+      "learn-ledger",
+      "client-wrong-ask", "client-demo", "client-security",
+      "design-read",
+      "story-why", "story-fail", "story-amb", "story-push", "story-learn",
+      "plan-w1", "plan-w2", "plan-w3", "plan-w4",
+      "self-1", "self-2"
+    ];
+
+    function renderProgress() {
+      const s = load();
+      const n = CHECKPOINTS.filter((k) => s[k]).length;
+      $("progressLabel").textContent = n + " / " + CHECKPOINTS.length + " checkpoints";
+      $("progressFill").style.width = (100 * n / CHECKPOINTS.length) + "%";
+    }
+
+    document.querySelectorAll(".nav-btn").forEach((btn) => {
+      btn.addEventListener("click", () => show(btn.dataset.view));
+    });
+    function show(id) {
+      document.querySelectorAll("section.view").forEach((el) => el.classList.toggle("on", el.id === id));
+      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === id));
+      if (id === "home") save({ "read-home": true });
+      if (id === "loops") save({ "read-loops": true });
+      if (id === "design") save({ "design-read": true });
+    }
+
+    /* ---------- Decomposition ---------- */
+    const PROMPTS = [
+      "A city wants to cut 911 dispatch times in half using your platform.",
+      "A hospital network wants AI to reconcile medication lists across three EHRs that never quite agree.",
+      "A national grid operator wants to predict wildfire ignitions along its transmission corridors.",
+      "A regional insurer wants an agent that 'handles' FNOL intake so adjusters only see complex claims.",
+      "A warehouse says pick-path optimization will kill overtime. Operators say the slots are wrong before noon.",
+      "A state unemployment office wants a chatbot because hold times hit three hours.",
+      "A food plant wants cameras on the line: retailers keep rejecting damaged cases and nobody can say where the damage happens.",
+      "A university hospital wants to cut idle OR time. Surgeons say they can never get a slot.",
+      "A mid-size bank wants an internal GPT because new analysts spend six months pinging seniors.",
+      "A county court wants a filing assistant for people representing themselves. Clerks are drowning.",
+      "A cold-chain logistics team wants a dashboard because vaccine doses keep spoiling between depot and clinic.",
+      "A construction GC wants wearables on crews after insurance premiums jumped on injury claims.",
+      "A grocery chain wants electronic shelf labels because advertised prices disagree with the register.",
+      "A port authority wants berth-scheduling AI: ships wait two days while cranes sit idle on the next pier.",
+      "A child-welfare agency wants a risk-score dashboard. Caseworkers say they cannot tell who needs a visit this week.",
+      "A municipal transit agency wants a new rider app because ridership never came back after remote work."
+    ];
+
+    const RUBRIC = [
+      ["r-user", "Named the user and the outcome they are measured on, before any feature."],
+      ["r-assump", "Stated assumptions and scope out loud, and checked them."],
+      ["r-parts", "Broke the problem into 3–5 sub-problems of the problem (not build phases)."],
+      ["r-hard", "Found and defended the genuinely hard part — where a miss sinks the outcome."],
+      ["r-slice", "Proposed a concrete first version and how I would know it was wrong, unprompted."]
+    ];
+
+    let promptIdx = 0;
+    let remain = 300;
+    let tick = null;
+    let running = false;
+
+    function setPrompt(i) {
+      promptIdx = (i + PROMPTS.length) % PROMPTS.length;
+      $("decompPrompt").textContent = PROMPTS[promptIdx];
+      $("decompCount").textContent = "Prompt " + (promptIdx + 1) + " of " + PROMPTS.length;
+    }
+    function fmt(t) {
+      const m = Math.floor(t / 60);
+      const s = t % 60;
+      return m + ":" + String(s).padStart(2, "0");
+    }
+    function paintTimer() {
+      $("decompTimer").textContent = fmt(remain);
+      $("decompTimer").classList.toggle("hot", remain <= 30 && remain > 0);
+    }
+    function stopTimer() {
+      running = false;
+      if (tick) clearInterval(tick);
+      tick = null;
+    }
+
+    $("ladderTabs").addEventListener("click", (e) => {
+      const t = e.target.closest("[data-ladder]");
+      if (!t) return;
+      document.querySelectorAll("#ladderTabs .tab").forEach((x) => x.classList.toggle("active", x === t));
+      document.querySelectorAll(".ladder").forEach((x) => x.classList.toggle("on", x.id === "ladder-" + t.dataset.ladder));
+    });
+
+    RUBRIC.forEach(([id, label]) => {
+      const row = document.createElement("label");
+      row.className = "check";
+      row.innerHTML = '<input type="checkbox" id="' + id + '"><span>' + label + "</span>";
+      $("decompRubric").appendChild(row);
+    });
+
+    $("timerStart").onclick = () => {
+      if (running) return;
+      if (remain <= 0) remain = 300;
+      running = true;
+      tick = setInterval(() => {
+        remain -= 1;
+        paintTimer();
+        if (remain <= 0) {
+          remain = 0;
+          paintTimer();
+          stopTimer();
+        }
+      }, 1000);
+    };
+    $("timerPause").onclick = stopTimer;
+    $("timerReset").onclick = () => { stopTimer(); remain = 300; paintTimer(); };
+    $("nextPrompt").onclick = () => {
+      setPrompt(promptIdx + 1);
+      $("decompNotes").value = "";
+      RUBRIC.forEach(([id]) => { $(id).checked = false; });
+      $("decompSaved").textContent = "";
+      stopTimer(); remain = 300; paintTimer();
+    };
+    $("saveDecomp").onclick = () => {
+      const pass = RUBRIC.filter(([id]) => $(id).checked).length;
+      const s = load();
+      const scores = s.decompScores || [];
+      scores.push({ t: Date.now(), prompt: PROMPTS[promptIdx], pass });
+      const patch = { decompScores: scores };
+      if (scores.length >= 1) patch["decomp-1"] = true;
+      if (scores.length >= 2) patch["decomp-2"] = true;
+      if (scores.length >= 3) patch["decomp-3"] = true;
+      save(patch);
+      $("decompSaved").textContent = pass + " / 5 moves. A first rep that passes all five is rare — if none failed, grade harder next time.";
+    };
+
+    $("aiPrompt").textContent = `You are the interviewer for a Forward Deployed Engineer decomposition round.
+Persona: senior engineer who has run this round many times. Neutral, brisk, unimpressed by polish.
+
+Rules:
+1. Present exactly ONE vague operational prompt at a time. Frame it as a solution a stakeholder already wants (an app, a dashboard, a chatbot). The stakeholder is usually not the person in pain. Never repeat a prompt.
+2. After the prompt, wait. Grade the transcript I paste, not a compressed retelling.
+3. Interrupt like a real interviewer:
+   - If I propose a product in the first minute: "Who is this for, and what are they measured on?"
+   - If I structure forever with nothing concrete: "You've been structuring a while. Can you give me something concrete?"
+   - When I name the hard part, probe it: why is it hard, what would I do first, how would I know I was wrong?
+   - If I go vague or quiet: "Keep talking. I can only grade what you say."
+4. Hold me to about five minutes (~700 words). Call time and grade what I have.
+5. When I say "grade me", mark each of five moves PASS or FAIL with a cited moment:
+   (a) user and outcome before any feature
+   (b) assumptions and scope stated and checked
+   (c) 3–5 sub-problems of the problem, not build phases
+   (d) the hard part defended — a miss that sinks the outcome
+   (e) a concrete proposal plus how I would know it was wrong, before you asked
+   Grade hard. A typical first rep fails at least two. Do not soften the grade because I argue.
+6. End with exactly one thing to fix on the next rep, then offer the next prompt.`;
+
+    $("copyPrompt").onclick = async () => {
+      try {
+        await navigator.clipboard.writeText($("aiPrompt").textContent);
+        $("copyPrompt").textContent = "Copied";
+        setTimeout(() => { $("copyPrompt").textContent = "Copy prompt"; }, 1200);
+      } catch {
+        $("copyPrompt").textContent = "Select the text and copy";
+      }
+    };
+
+    setPrompt(0);
+    paintTimer();
+
+    /* ---------- Coding ---------- */
+    function deepEqual(a, b) {
+      if (a === b) return true;
+      if (typeof a !== typeof b) return false;
+      if (a && b && typeof a === "object") {
+        if (Array.isArray(a) !== Array.isArray(b)) return false;
+        if (Array.isArray(a)) {
+          if (a.length !== b.length) return false;
+          return a.every((v, i) => deepEqual(v, b[i]));
+        }
+        const ka = Object.keys(a).sort();
+        const kb = Object.keys(b).sort();
+        if (!deepEqual(ka, kb)) return false;
+        return ka.every((k) => deepEqual(a[k], b[k]));
+      }
+      return Number.isNaN(a) && Number.isNaN(b);
+    }
+
+    const PROBLEMS = [
+      {
+        id: "stations",
+        title: "Nearest station",
+        blurb: "Incidents pop on a city grid. Fire stations are already placed. For each incident, return the Manhattan walk distance to the nearest station, treating '#' as blocked. Unreachable incidents are -1.",
+        follow: "Follow-up interviewers love: 'Now some cells are one-way.' For this drill, walls are enough. Narrate BFS from all stations at once rather than one BFS per incident.",
+        signature: "nearestStations(grid) → [{r, c, dist}, ...] for every 'I', sorted by r then c",
+        starter: `function nearestStations(grid) {
+  // grid: 2D array of 'S' station, 'I' incident, '.' empty, '#' wall
+  // return [{ r, c, dist }, ...] for each I, sorted by r then c
+  // unreachable → dist: -1
+}`,
+        solution: `function nearestStations(grid) {
+  const R = grid.length, C = grid[0].length;
+  const q = [];
+  const dist = Array.from({ length: R }, () => Array(C).fill(null));
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c < C; c++) {
+      if (grid[r][c] === "S") {
+        dist[r][c] = 0;
+        q.push([r, c]);
+      }
+    }
+  }
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  for (let i = 0; i < q.length; i++) {
+    const [r, c] = q[i];
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nc < 0 || nr >= R || nc >= C) continue;
+      if (grid[nr][nc] === "#") continue;
+      if (dist[nr][nc] !== null) continue;
+      dist[nr][nc] = dist[r][c] + 1;
+      q.push([nr, nc]);
+    }
+  }
+  const out = [];
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c < C; c++) {
+      if (grid[r][c] === "I") out.push({ r, c, dist: dist[r][c] == null ? -1 : dist[r][c] });
+    }
+  }
+  return out;
+}`,
+        tests: [
+          {
+            name: "open block",
+            args: [[["S",".","I"],[".",".","."],["I",".","S"]]],
+            expected: [{ r: 0, c: 2, dist: 2 }, { r: 2, c: 0, dist: 2 }]
+          },
+          {
+            name: "wall forces detour",
+            args: [[["S","#","I"],[".",".","."]]],
+            expected: [{ r: 0, c: 2, dist: 4 }]
+          },
+          {
+            name: "unreachable pocket",
+            args: [[["S",".","."],["#","#","#"],[".","I","."]]],
+            expected: [{ r: 2, c: 1, dist: -1 }]
+          },
+          {
+            name: "station on incident is not an I",
+            args: [[["S"]]],
+            expected: []
+          }
+        ]
+      },
+      {
+        id: "shipments",
+        title: "Shipment fold",
+        blurb: "Fold a dirty event log into current shipment state. Latest event per id wins. Count shipments whose latest status is DELAYED and that have been delayed at least 48 hours as of `now`.",
+        follow: "Part two in a live loop: 'replays showed up.' Handle that in the Learning round. Here, ignore unknown statuses and do not mutate input.",
+        signature: "foldShipments(events, now) → { shipments: {id: {status, loc, ts}}, delayed: number }",
+        starter: `function foldShipments(events, now) {
+  // events: [{ id, status, ts, loc }, ...]
+  // return { shipments: { [id]: { status, loc, ts } }, delayed: number }
+  // delayed = ids whose latest status is DELAYED and (now - ts) >= 48 * 3600
+}`,
+        solution: `function foldShipments(events, now) {
+  const ok = new Set(["PICKED_UP", "IN_TRANSIT", "DELAYED", "DELIVERED"]);
+  const shipments = {};
+  for (const e of events) {
+    if (!ok.has(e.status)) continue;
+    const cur = shipments[e.id];
+    if (!cur || e.ts >= cur.ts) shipments[e.id] = { status: e.status, loc: e.loc, ts: e.ts };
+  }
+  let delayed = 0;
+  const window = 48 * 3600;
+  for (const s of Object.values(shipments)) {
+    if (s.status === "DELAYED" && now - s.ts >= window) delayed++;
+  }
+  return { shipments, delayed };
+}`,
+        tests: [
+          {
+            name: "latest wins",
+            args: [[
+              { id: "A", status: "PICKED_UP", ts: 10, loc: "LAX" },
+              { id: "A", status: "IN_TRANSIT", ts: 20, loc: "DEN" }
+            ], 100],
+            expected: { shipments: { A: { status: "IN_TRANSIT", loc: "DEN", ts: 20 } }, delayed: 0 }
+          },
+          {
+            name: "stale delay counts",
+            args: [[
+              { id: "A", status: "DELAYED", ts: 0, loc: "ORD" },
+              { id: "B", status: "DELAYED", ts: 100, loc: "DFW" }
+            ], 48 * 3600],
+            expected: {
+              shipments: {
+                A: { status: "DELAYED", loc: "ORD", ts: 0 },
+                B: { status: "DELAYED", loc: "DFW", ts: 100 }
+              },
+              delayed: 1
+            }
+          },
+          {
+            name: "unknown status skipped",
+            args: [[{ id: "A", status: "LOST", ts: 50, loc: "X" }, { id: "A", status: "PICKED_UP", ts: 10, loc: "Y" }], 10],
+            expected: { shipments: { A: { status: "PICKED_UP", loc: "Y", ts: 10 } }, delayed: 0 }
+          },
+          {
+            name: "equal ts keeps later in list",
+            args: [[
+              { id: "A", status: "PICKED_UP", ts: 5, loc: "A1" },
+              { id: "A", status: "DELIVERED", ts: 5, loc: "A2" }
+            ], 5],
+            expected: { shipments: { A: { status: "DELIVERED", loc: "A2", ts: 5 } }, delayed: 0 }
+          }
+        ]
+      },
+      {
+        id: "schedule",
+        title: "Critical path",
+        blurb: "Deployment tasks with dependencies. Return a valid execution order (dependencies before dependents) and the earliest completion time if independent tasks may run in parallel. Cycle → { order: [], earliest: -1 }.",
+        follow: "This is the onsite 'requirements grew' shape: first a valid order, then duration, then parallel batches. Start with Kahn plus longest path.",
+        signature: "schedule(tasks) → { order: string[], earliest: number }",
+        starter: `function schedule(tasks) {
+  // tasks: [{ id, duration, deps: string[] }]
+  // parallel ok when deps are satisfied
+  // cycle → { order: [], earliest: -1 }
+}`,
+        solution: `function schedule(tasks) {
+  const byId = new Map(tasks.map((t) => [t.id, t]));
+  const indeg = new Map();
+  const kids = new Map();
+  for (const t of tasks) {
+    indeg.set(t.id, 0);
+    kids.set(t.id, []);
+  }
+  for (const t of tasks) {
+    for (const d of t.deps) {
+      if (!byId.has(d)) continue;
+      indeg.set(t.id, indeg.get(t.id) + 1);
+      kids.get(d).push(t.id);
+    }
+  }
+  const q = [];
+  for (const [id, n] of indeg) if (n === 0) q.push(id);
+  const order = [];
+  const ready = new Map(tasks.map((t) => [t.id, 0]));
+  let i = 0;
+  while (i < q.length) {
+    const id = q[i++];
+    order.push(id);
+    const fin = ready.get(id) + byId.get(id).duration;
+    for (const k of kids.get(id)) {
+      ready.set(k, Math.max(ready.get(k), fin));
+      indeg.set(k, indeg.get(k) - 1);
+      if (indeg.get(k) === 0) q.push(k);
+    }
+  }
+  if (order.length !== tasks.length) return { order: [], earliest: -1 };
+  let earliest = 0;
+  for (const t of tasks) earliest = Math.max(earliest, ready.get(t.id) + t.duration);
+  return { order, earliest };
+}`,
+        tests: [
+          {
+            name: "linear",
+            args: [[{ id: "a", duration: 2, deps: [] }, { id: "b", duration: 3, deps: ["a"] }]],
+            expected: { order: ["a", "b"], earliest: 5 }
+          },
+          {
+            name: "parallel after shared dep",
+            args: [[
+              { id: "ingest", duration: 2, deps: [] },
+              { id: "clean", duration: 3, deps: ["ingest"] },
+              { id: "model", duration: 5, deps: ["clean"] },
+              { id: "serve", duration: 1, deps: ["clean"] }
+            ]],
+            check(got) {
+              const o = got.order || [];
+              const i = Object.fromEntries(o.map((id, idx) => [id, idx]));
+              return got.earliest === 10
+                && o.length === 4
+                && i.ingest < i.clean
+                && i.clean < i.model
+                && i.clean < i.serve;
+            }
+          },
+          {
+            name: "cycle",
+            args: [[{ id: "a", duration: 1, deps: ["b"] }, { id: "b", duration: 1, deps: ["a"] }]],
+            expected: { order: [], earliest: -1 }
+          },
+          {
+            name: "two roots",
+            args: [[{ id: "x", duration: 4, deps: [] }, { id: "y", duration: 1, deps: [] }]],
+            check(got) {
+              const set = got.order.slice().sort().join(",");
+              return got.earliest === 4 && set === "x,y";
+            }
+          }
+        ]
+      }
+    ];
+
+    let codeIdx = 0;
+    const codeTabs = $("codeTabs");
+    PROBLEMS.forEach((p, i) => {
+      const b = document.createElement("button");
+      b.className = "tab" + (i === 0 ? " active" : "");
+      b.textContent = p.title;
+      b.onclick = () => selectProblem(i);
+      codeTabs.appendChild(b);
+    });
+
+    function selectProblem(i) {
+      codeIdx = i;
+      const p = PROBLEMS[i];
+      [...codeTabs.children].forEach((c, j) => c.classList.toggle("active", j === i));
+      $("codeProblem").innerHTML = "<h3 style='margin-top:0'>" + p.title + "</h3><p>" + p.blurb + "</p><p class='mono'>" + p.signature + "</p><p class='muted'>" + p.follow + "</p>";
+      const saved = load()["codeDraft-" + p.id];
+      $("codeEditor").value = saved || p.starter;
+      $("testOut").innerHTML = "";
+      $("codeConsole").classList.add("hidden");
+      $("codeConsole").textContent = "";
+    }
+
+    $("codeEditor").addEventListener("input", () => {
+      const p = PROBLEMS[codeIdx];
+      const s = load();
+      s["codeDraft-" + p.id] = $("codeEditor").value;
+      localStorage.setItem(STORE_KEY, JSON.stringify(s));
+    });
+
+    function compileFn(src, name) {
+      const logs = [];
+      const fn = new Function("console", src + "\n; return " + name + ";");
+      const fake = { log: (...a) => logs.push(a.map(String).join(" ")) };
+      const impl = fn(fake);
+      if (typeof impl !== "function") throw new Error(name + " is not defined");
+      return { impl, logs };
+    }
+
+    $("runTests").onclick = () => {
+      const p = PROBLEMS[codeIdx];
+      const box = $("testOut");
+      const cons = $("codeConsole");
+      box.innerHTML = "";
+      try {
+        const { impl, logs } = compileFn($("codeEditor").value, p.id === "stations" ? "nearestStations" : p.id === "shipments" ? "foldShipments" : "schedule");
+        let passN = 0;
+        p.tests.forEach((t) => {
+          const row = document.createElement("div");
+          row.className = "test-row";
+          try {
+            const got = impl.apply(null, t.args);
+            const ok = t.check ? t.check(got) : deepEqual(got, t.expected);
+            if (ok) {
+              passN++;
+              row.classList.add("pass");
+              row.textContent = "pass  " + t.name;
+            } else {
+              row.classList.add("fail");
+              row.textContent = "fail  " + t.name + "  got " + JSON.stringify(got) + (t.expected ? "  want " + JSON.stringify(t.expected) : "");
+            }
+          } catch (err) {
+            row.classList.add("fail");
+            row.textContent = "fail  " + t.name + "  " + err.message;
+          }
+          box.appendChild(row);
+        });
+        if (logs.length) {
+          cons.classList.remove("hidden");
+          cons.textContent = logs.join("\n");
+        } else cons.classList.add("hidden");
+        if (passN === p.tests.length) {
+          const key = "code-" + p.id;
+          save({ [key]: true });
+          const ok = document.createElement("div");
+          ok.className = "callout ok";
+          ok.textContent = "All tests passed. Narrate this solution once without looking.";
+          box.appendChild(ok);
+        }
+      } catch (err) {
+        box.innerHTML = '<div class="test-row fail">' + err.message + "</div>";
+      }
+    };
+
+    $("revealSol").onclick = () => { $("codeEditor").value = PROBLEMS[codeIdx].solution; };
+    $("resetCode").onclick = () => { $("codeEditor").value = PROBLEMS[codeIdx].starter; };
+    selectProblem(0);
+
+    /* ---------- Learning ---------- */
+    const LEARN_STARTER = `function summarize(events, now) {
+  // Fold the log. Catch-up copies are appended when the link recovers.
+  const shipments = {};
+  let delayed = 0;
+  const windowHrs = 48 * 3600;
+  for (const e of events) {
+    shipments[e.id] = { status: e.status, loc: e.loc, ts: e.ts };
+    if (e.status === "DELAYED" && now - e.ts >= windowHrs) delayed++;
+  }
+  return { shipments, delayed };
+}`;
+
+    const LEARN_SOLUTION = `function summarize(events, now) {
+  const ok = new Set(["PICKED_UP", "IN_TRANSIT", "DELAYED", "DELIVERED"]);
+  const shipments = {};
+  const windowHrs = 48 * 3600;
+  for (const e of events) {
+    if (e.kind === "replay") continue;
+    if (!ok.has(e.status)) continue;
+    const cur = shipments[e.id];
+    if (!cur || e.ts >= cur.ts) {
+      shipments[e.id] = { status: e.status, loc: e.loc, ts: e.ts };
+    }
+  }
+  let delayed = 0;
+  for (const s of Object.values(shipments)) {
+    if (s.status === "DELAYED" && now - s.ts >= windowHrs) delayed++;
+  }
+  return { shipments, delayed };
+}`;
+
+    $("learnEditor").value = load().learnDraft || LEARN_STARTER;
+    $("learnEditor").addEventListener("input", () => save({ learnDraft: $("learnEditor").value }));
+
+    const LEARN_TESTS = [
+      {
+        name: "live delay still counts once",
+        run(fn) {
+          const now = 48 * 3600;
+          const got = fn([{ id: "A", status: "DELAYED", ts: 0, loc: "ORD" }], now);
+          return got.delayed === 1 && got.shipments.A.status === "DELAYED";
+        }
+      },
+      {
+        name: "replay of the same delay does not double-count",
+        run(fn) {
+          const now = 48 * 3600;
+          const events = [
+            { id: "A", status: "DELAYED", ts: 0, loc: "ORD" },
+            { id: "A", status: "DELAYED", ts: 0, loc: "ORD", kind: "replay" }
+          ];
+          const got = fn(events, now);
+          return got.delayed === 1;
+        }
+      },
+      {
+        name: "replay must not clobber a newer live state",
+        run(fn) {
+          const events = [
+            { id: "A", status: "DELIVERED", ts: 80, loc: "BOS" },
+            { id: "A", status: "DELAYED", ts: 10, loc: "ORD", kind: "replay" }
+          ];
+          const got = fn(events, 90);
+          return got.shipments.A.status === "DELIVERED" && got.delayed === 0;
+        }
+      },
+      {
+        name: "does not mutate input",
+        run(fn) {
+          const events = [{ id: "A", status: "PICKED_UP", ts: 1, loc: "X", extra: true }];
+          const copy = JSON.parse(JSON.stringify(events));
+          fn(events, 1);
+          return JSON.stringify(events) === JSON.stringify(copy);
+        }
+      },
+      {
+        name: "unknown status ignored",
+        run(fn) {
+          const got = fn([{ id: "A", status: "LOST", ts: 9, loc: "Z" }], 9);
+          return got.shipments.A == null && got.delayed === 0;
+        }
+      }
+    ];
+
+    $("runLearn").onclick = () => {
+      const box = $("learnOut");
+      box.innerHTML = "";
+      try {
+        const { impl } = compileFn($("learnEditor").value, "summarize");
+        let n = 0;
+        LEARN_TESTS.forEach((t) => {
+          const row = document.createElement("div");
+          row.className = "test-row";
+          try {
+            const ok = t.run(impl);
+            if (ok) { n++; row.classList.add("pass"); row.textContent = "pass  " + t.name; }
+            else { row.classList.add("fail"); row.textContent = "fail  " + t.name; }
+          } catch (err) {
+            row.classList.add("fail");
+            row.textContent = "fail  " + t.name + "  " + err.message;
+          }
+          box.appendChild(row);
+        });
+        if (n === LEARN_TESTS.length) {
+          save({ "learn-ledger": true });
+          const ok = document.createElement("div");
+          ok.className = "callout ok";
+          ok.textContent = "Green. In the room, say: I reproduced 2× by replaying, hypothesized that replay events were folded as live, skipped kind === \"replay\", then re-ran the live cases.";
+          box.appendChild(ok);
+        }
+      } catch (err) {
+        box.innerHTML = '<div class="test-row fail">' + err.message + "</div>";
+      }
+    };
+
+    $("revealLearn").onclick = () => {
+      $("learnHint").classList.remove("hidden");
+      $("learnHint").innerHTML = "<strong>Two defects, one cause.</strong> Replays are catch-up copies (<span class='mono'>kind === \"replay\"</span>) with the same id/status/ts. The starter last-write-wins on every event, so a late replay can overwrite a newer live state, and it increments <span class='mono'>delayed</span> per event rather than per shipment. Skip replays, ignore unknown statuses, keep latest <em>live</em> state, and count delayed <em>ids</em>. Smallest change, not a rewrite.";
+      $("learnEditor").value = LEARN_SOLUTION;
+    };
+
+    /* ---------- Client ---------- */
+    const CLIENTS = [
+      {
+        id: "wrong-ask",
+        title: "They want the wrong thing",
+        scene: "A VP of operations: “We need a chatbot on the help site this sprint. Ticket volume is out of control.” You already peeked at the queue: about 70% is ‘where is my order,’ and there is a tracking page nobody uses.",
+        ask: "They are the buyer. They were clear. What do you say in the first five minutes?",
+        answer: "Climb to the number: is success fewer tickets, faster time-to-resolution, or CSAT? If 70% is a tracking question, a chatbot that wraps a page people already bounce off will not move the number. Offer a week-one test: instrument why the tracking page fails (auth, stale carrier scan, mobile), fix that path, and only then wrap the remainder in a bot. You are not refusing the bot; you are refusing to spend a quarter on a channel that cannot reach the people who never ask. If the data says the bot wins, you build the bot."
+      },
+      {
+        id: "demo",
+        title: "The demo lies",
+        scene: "Live customer demo. The retrieval demo answers a technician’s lockout question with a competitor’s SOP that leaked into the corpus. The room goes quiet. The champion looks at you.",
+        ask: "Do you keep presenting, or do you stop the demo?",
+        answer: "Stop. Name what happened in their language: the assistant cited a document it should never have seen, which is a trust failure, not a glitch. Say what you will do before you talk again: isolate the doc, take the index offline for that collection, and come back with (1) how it got in, (2) the access control check that will exist before any other question is answered, (3) a 20-case eval that includes ‘must not answer from foreign tenant.’ Then ask whether they want to continue on a frozen, known-good collection or reschedule. Continuing as if nothing happened trains them to distrust you."
+      },
+      {
+        id: "security",
+        title: "Security freeze at go-live",
+        scene: "Friday before production. CISO’s office: no customer traces leave the VPC, and your current vendor-hosted eval harness dumps prompts to a SaaS. The champion still wants Monday.",
+        ask: "What is the move that keeps both the date and the relationship from dying?",
+        answer: "Do not surprise the champion in the CISO meeting. Split the date: Monday can be shadow mode on their data with traces staying in-VPC and a local golden set scored by hand or an in-network judge. The SaaS harness waits. Say the risk you are accepting (slower eval iteration) and the risk you are not (prompts on a third-party disk). Put the exception in writing: what is on, what is off, who can see traces. A delayed honest launch beats a Monday that gets pulled Wednesday."
+      }
+    ];
+
+    const clientTabs = $("clientTabs");
+    let clientIdx = 0;
+    CLIENTS.forEach((c, i) => {
+      const b = document.createElement("button");
+      b.className = "tab" + (i === 0 ? " active" : "");
+      b.textContent = c.title;
+      b.onclick = () => selectClient(i);
+      clientTabs.appendChild(b);
+    });
+    function selectClient(i) {
+      clientIdx = i;
+      const c = CLIENTS[i];
+      [...clientTabs.children].forEach((el, j) => el.classList.toggle("active", j === i));
+      $("clientScene").textContent = c.scene;
+      $("clientAsk").textContent = c.ask;
+      $("clientAnswer").classList.add("hidden");
+      $("clientNotes").value = load()["clientDraft-" + c.id] || "";
+    }
+    $("clientNotes").addEventListener("input", () => {
+      save({ ["clientDraft-" + CLIENTS[clientIdx].id]: $("clientNotes").value });
+    });
+    $("revealClient").onclick = () => {
+      const c = CLIENTS[clientIdx];
+      $("clientAnswer").classList.remove("hidden");
+      $("clientAnswer").innerHTML = "<strong>A strong pass.</strong> " + c.answer;
+    };
+    $("markClient").onclick = () => {
+      save({ ["client-" + CLIENTS[clientIdx].id]: true });
+      $("markClient").textContent = "Saved";
+      setTimeout(() => { $("markClient").textContent = "Mark practiced"; }, 1000);
+    };
+    selectClient(0);
+
+    /* ---------- Design ---------- */
+    const DESIGNS = [
+      {
+        title: "SOP assistant for plant techs",
+        html: "<p>A manufacturer wants an assistant that answers machine-safety questions so techs stop hunting PDFs. Incidents are still happening on the night shift.</p><p><strong>Trap:</strong> the person who would use a chatbot is already the careful one. The veteran who is sure never asks.</p><ul class='tight'><li>Outcome: incidents, not search time. Confirm where incidents actually come from.</li><li>Eval: 50 questions from real near-misses, graded on citation to the current SOP revision, plus ‘must refuse’ when the SOP is silent.</li><li>If the hard part is confidence ≠ correctness, the slice is not a chat box. It is a checklist inside the lockout/tagout sign-off, with the model proposing steps the tech still confirms.</li><li>Guardrail: never invent a torque spec. Empty retrieval → escalate to the supervisor on call, do not guess.</li></ul>"
+      },
+      {
+        title: "Claims intake agent",
+        html: "<p>Insurer: ‘handle FNOL so adjusters only see complex claims.’ 12 intake channels, none with a clean schema.</p><ul class='tight'><li>Outcome: cycle time and leakage (paid too much) — those can move in opposite directions.</li><li>Eval split: extraction F1 on fields, routing accuracy to the right desk, and a safety set for fraud-shaped stories you must not auto-close.</li><li>Week one: shadow extract on one channel (web form), adjuster sees a diff, you measure correction rate. If they edit every time, you do not take the wheel.</li><li>Fine-tune is a later tax. Prompt + schema + retrieval over the claims manual first. Cost the tokens against adjuster hours.</li></ul>"
+      },
+      {
+        title: "Support agent launch gate",
+        html: "<p>They want to ‘let the bot close tickets’ next month. You are asked how you would know it is safe.</p><ul class='tight'><li>Golden set from real tickets, not marketing FAQs. Include the angry ones and the policy-edge ones.</li><li>Component metrics: retrieval hit@5, groundedness (did the answer use retrieved spans), tool success (refund API), and user-visible refusal quality.</li><li>Launch-blocking: refunds above a cap, legal/medical advice, competitor data, or empty retrieval answered anyway.</li><li>CI: every prompt or index change reruns the gate. A judge model is a helper, not the gate, until it is calibrated against humans on a frozen set.</li></ul>"
+      }
+    ];
+    const designTabs = $("designTabs");
+    DESIGNS.forEach((d, i) => {
+      const b = document.createElement("button");
+      b.className = "tab" + (i === 0 ? " active" : "");
+      b.textContent = d.title;
+      b.onclick = () => {
+        [...designTabs.children].forEach((el, j) => el.classList.toggle("active", j === i));
+        $("designCase").innerHTML = d.html;
+      };
+      designTabs.appendChild(b);
+    });
+    $("designCase").innerHTML = DESIGNS[0].html;
+
+    /* ---------- Behavioral ---------- */
+    const STORIES = [
+      {
+        id: "why",
+        title: "Why this company / why FDE",
+        fields: [
+          ["company", "Company (Palantir, OpenAI, …)"],
+          ["thesis", "Where the role creates value — in your words"],
+          ["evidence", "A specific thing you shipped that proves you are useful in that last mile"],
+          ["cost", "A cost of the job you are choosing with open eyes (travel, clearance, customer clocks, who the work is for)"]
+        ]
+      },
+      {
+        id: "fail",
+        title: "A real failure",
+        fields: [
+          ["sit", "Situation — what was actually on fire"],
+          ["act", "What you did, including the mistake"],
+          ["res", "The result in numbers or scars"],
+          ["learn", "What changed in how you work — concrete, not ‘I communicate better’"]
+        ]
+      },
+      {
+        id: "amb",
+        title: "Ambiguity without a spec",
+        fields: [
+          ["sit", "The underspecified ask"],
+          ["act", "How you imposed a metric and a thin slice"],
+          ["res", "What shipped, what you scoped out"],
+          ["learn", "What you would still not build"]
+        ]
+      },
+      {
+        id: "push",
+        title: "Pushing back on a customer or PM",
+        fields: [
+          ["sit", "The ask that would not have moved the number"],
+          ["act", "How you said no with a reason, and what you offered instead"],
+          ["res", "Did they take it? What happened to the metric?"],
+          ["learn", "When you would have built the thing they asked for"]
+        ]
+      },
+      {
+        id: "learn",
+        title: "Useful in an unfamiliar stack, fast",
+        fields: [
+          ["sit", "The system you did not know"],
+          ["act", "How you traced one path and de-risked before rewriting"],
+          ["res", "Time to first useful change"],
+          ["learn", "What you still did not understand, and how you bounded that"]
+        ]
+      }
+    ];
+
+    const storyTabs = $("storyTabs");
+    let storyIdx = 0;
+    STORIES.forEach((st, i) => {
+      const b = document.createElement("button");
+      b.className = "tab" + (i === 0 ? " active" : "");
+      b.textContent = st.title;
+      b.onclick = () => selectStory(i);
+      storyTabs.appendChild(b);
+    });
+
+    function selectStory(i) {
+      storyIdx = i;
+      const st = STORIES[i];
+      [...storyTabs.children].forEach((el, j) => el.classList.toggle("active", j === i));
+      const wrap = $("storyCard");
+      wrap.innerHTML = "<h3 style='margin-top:0'>" + st.title + "</h3>";
+      const drafts = (load().stories || {})[st.id] || {};
+      st.fields.forEach(([key, label]) => {
+        const lab = document.createElement("label");
+        lab.textContent = label;
+        const area = document.createElement("textarea");
+        area.value = drafts[key] || "";
+        area.dataset.key = key;
+        area.addEventListener("input", persistStory);
+        wrap.appendChild(lab);
+        wrap.appendChild(area);
+      });
+      const btn = document.createElement("button");
+      btn.className = "btn primary";
+      btn.textContent = "Mark this story ready";
+      btn.onclick = () => {
+        save({ ["story-" + st.id]: true });
+        $("storyStatus").textContent = "Marked ready. Read it once out loud without the card.";
+      };
+      wrap.appendChild(btn);
+      $("storyStatus").textContent = "";
+    }
+    function persistStory() {
+      const st = STORIES[storyIdx];
+      const s = load();
+      const stories = s.stories || {};
+      const cur = {};
+      $("storyCard").querySelectorAll("textarea").forEach((t) => { cur[t.dataset.key] = t.value; });
+      stories[st.id] = cur;
+      save({ stories });
+    }
+    selectStory(0);
+
+    /* ---------- Plan ---------- */
+    const PLAN = [
+      ["plan-w1", "Week 1 — Floor", "Two timed practical coding sessions (narrated). One SQL join on paper. Read the loop for your company. Draft ‘why here’ and a real failure (not a success in costume)."],
+      ["plan-w2", "Week 2 — Decomposition", "Five timed drills from the bank, out loud, recorded. Grade against the five moves. Do not reuse a prompt you have already seen the answer to."],
+      ["plan-w3", "Week 3 — Learning + client", "The Ledger task without the reveal. One unfamiliar library of your own (docs open, 20 minutes, one working call). All three client scenes out loud."],
+      ["plan-w4", "Week 4 — Loop", "One full mock: coding (45m) + decomp (25m) + design (25m) + values (20m). Take-home rehearsal if you are in an OpenAI-style loop: four hours, then a 15-minute walkthrough you record."]
+    ];
+    PLAN.forEach(([id, title, body]) => {
+      const lab = document.createElement("label");
+      lab.className = "check plan-week card";
+      lab.innerHTML = '<input type="checkbox" ' + (load()[id] ? "checked" : "") + '><div><strong>' + title + "</strong><p style='margin:6px 0 0'>" + body + "</p></div>";
+      lab.querySelector("input").onchange = (e) => save({ [id]: e.target.checked });
+      $("planList").appendChild(lab);
+    });
+
+    const SELFS = [
+      ["self-1", "I can run the five decomposition moves on a cold prompt without looking at notes."],
+      ["self-2", "I have a failure story that is actually a failure, and a ‘why here’ that names a cost of the job."]
+    ];
+    SELFS.forEach(([id, text]) => {
+      const lab = document.createElement("label");
+      lab.className = "check";
+      lab.innerHTML = '<input type="checkbox" ' + (load()[id] ? "checked" : "") + "><span>" + text + "</span>";
+      lab.querySelector("input").onchange = (e) => save({ [id]: e.target.checked });
+      $("selfCheck").appendChild(lab);
+    });
+
+    renderProgress();
+  })();
+  </script>
+</body>
+</html>
