@@ -1117,17 +1117,13 @@ Rules:
 
     /* ---------- Learning ---------- */
     const LEARN_STARTER = `function summarize(events, now) {
+  // Fold the log. Catch-up copies are appended when the link recovers.
   const shipments = {};
   let delayed = 0;
   const windowHrs = 48 * 3600;
   for (const e of events) {
-    const cur = shipments[e.id];
-    if (!cur || e.ts >= cur.ts) {
-      shipments[e.id] = { status: e.status, loc: e.loc, ts: e.ts };
-    }
-  }
-  for (const s of Object.values(shipments)) {
-    if (s.status === "DELAYED" && now - s.ts >= windowHrs) delayed++;
+    shipments[e.id] = { status: e.status, loc: e.loc, ts: e.ts };
+    if (e.status === "DELAYED" && now - e.ts >= windowHrs) delayed++;
   }
   return { shipments, delayed };
 }`;
@@ -1237,7 +1233,7 @@ Rules:
 
     $("revealLearn").onclick = () => {
       $("learnHint").classList.remove("hidden");
-      $("learnHint").innerHTML = "<strong>The defect.</strong> Replays are catch-up copies with the same <span class='mono'>id + status + ts</span>. The starter treats them as live, so a delayed shipment that later delivered still looks delayed if a late replay arrives, and a replayed delay can be counted besides the original. Skip <span class='mono'>kind === \"replay\"</span> (or dedupe on id|status|ts) and keep ignoring unknown statuses. Smallest change, not a rewrite.";
+      $("learnHint").innerHTML = "<strong>Two defects, one cause.</strong> Replays are catch-up copies (<span class='mono'>kind === \"replay\"</span>) with the same id/status/ts. The starter last-write-wins on every event, so a late replay can overwrite a newer live state, and it increments <span class='mono'>delayed</span> per event rather than per shipment. Skip replays, ignore unknown statuses, keep latest <em>live</em> state, and count delayed <em>ids</em>. Smallest change, not a rewrite.";
       $("learnEditor").value = LEARN_SOLUTION;
     };
 
