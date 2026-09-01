@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halal Meats - Customer Service Bot</title>
+    <style>
+        :root {
+            --brand: #0b7a3b;
+            --brand-dark: #095f2e;
+            --bg: #f4f6f8;
+            --bot-bubble: #eef2f5;
+            --user-bubble: #0b7a3b;
+            --text: #1f2933;
+            --muted: #616e7c;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 1.5rem 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        .chat {
+            width: 100%;
+            max-width: 480px;
+            height: min(720px, 90vh);
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: var(--brand);
+            color: #fff;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex: 0 0 auto;
+        }
+        .chat-header .title { font-weight: 700; line-height: 1.1; }
+        .chat-header .status { font-size: 0.8rem; opacity: 0.85; }
+        .chat-header .status::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #8ff0a4;
+            margin-right: 6px;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .row { display: flex; }
+        .row.bot { justify-content: flex-start; }
+        .row.user { justify-content: flex-end; }
+        .bubble {
+            max-width: 78%;
+            padding: 0.6rem 0.85rem;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            line-height: 1.35;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .row.bot .bubble {
+            background: var(--bot-bubble);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+        }
+        .row.user .bubble {
+            background: var(--user-bubble);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .bubble a { color: inherit; font-weight: 600; }
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0 1.25rem 0.5rem;
+        }
+        .quick-replies button {
+            background: #fff;
+            border: 1.5px solid var(--brand);
+            color: var(--brand);
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .quick-replies button:hover {
+            background: var(--brand);
+            color: #fff;
+        }
+        .composer {
+            border-top: 1px solid #e4e7eb;
+            padding: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .composer input {
+            flex: 1;
+            border: 1px solid #cbd2d9;
+            border-radius: 999px;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .composer input:focus { border-color: var(--brand); }
+        .composer button {
+            background: var(--brand);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .composer button:hover { background: var(--brand-dark); }
+        .typing {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+            padding: 0.7rem 0.9rem;
+        }
+        .typing span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--muted);
+            opacity: 0.5;
+            animation: blink 1.2s infinite both;
+        }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+            40% { opacity: 1; transform: translateY(-3px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat" role="region" aria-label="Customer service chat">
+        <div class="chat-header">
+            <div class="avatar">HB</div>
+            <div>
+                <div class="title">HalalBot</div>
+                <div class="status">Halal Meats Customer Service</div>
+            </div>
+        </div>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+        <div id="quickReplies" class="quick-replies"></div>
+
+        <form id="composer" class="composer" autocomplete="off">
+            <input id="userInput" type="text" placeholder="Type your question..." aria-label="Type your message">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        /*
+         * Decision-tree customer service bot.
+         *
+         * The bot's behaviour is fully driven by the `tree` object below: each node has a
+         * `message` (string or function returning a string) and a list of `options`.
+         * An option either navigates to another node (`next`) or runs an `action`.
+         * Free-text input is routed through `intents` (keyword -> node id) so the bot can
+         * make a decision even when the user types instead of tapping a quick reply.
+         *
+         * To upgrade to an LLM-backed bot later, replace `routeFreeText()` with a call to
+         * your model and render its reply via `addBotMessage()`; the UI needs no changes.
+         */
+
+        var ORDER_FORM_URL = 'HalalMeatOrder.html';
+
+        var tree = {
+            start: {
+                message: "Hi, I'm HalalBot, the Halal Meats assistant. What can I help you with today?",
+                options: [
+                    { label: "Place an order", next: "order" },
+                    { label: "Track an order", next: "track" },
+                    { label: "Halal certification", next: "halal" },
+                    { label: "Delivery & pickup", next: "fulfilment" },
+                    { label: "Pricing", next: "pricing" },
+                    { label: "Talk to a human", next: "human" }
+                ]
+            },
+
+            order: {
+                message: "Great, let's get your order started. How would you like to receive it?",
+                options: [
+                    { label: "Home delivery", next: "order_delivery" },
+                    { label: "Store pickup", next: "order_pickup" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            order_delivery: {
+                message: "We deliver fresh, halal-certified meat to your door. Do you already know what you'd like?",
+                options: [
+                    { label: "Yes, open the order form", action: "openForm" },
+                    { label: "Help me choose", next: "recommend" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            order_pickup: {
+                message: "You can pick up in-store at 128 Market Street, open daily 9am-8pm. Want to place the order now so it's ready when you arrive?",
+                options: [
+                    { label: "Open the order form", action: "openForm" },
+                    { label: "Help me choose", next: "recommend" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            recommend: {
+                message: "Sure! What are you cooking?",
+                options: [
+                    { label: "A big family roast", next: "rec_roast" },
+                    { label: "Quick weekday meals", next: "rec_quick" },
+                    { label: "A BBQ / grill", next: "rec_bbq" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            rec_roast: {
+                message: "For a family roast I'd recommend our bone-in lamb leg or a beef top round, about 0.4 kg per person. Ready to order?",
+                options: [
+                    { label: "Open the order form", action: "openForm" },
+                    { label: "See other ideas", next: "recommend" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            rec_quick: {
+                message: "For quick weekday meals, boneless chicken breast or diced beef work great, roughly 0.2 kg per person. Ready to order?",
+                options: [
+                    { label: "Open the order form", action: "openForm" },
+                    { label: "See other ideas", next: "recommend" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            rec_bbq: {
+                message: "For the grill, lamb chops and chicken thighs are crowd-pleasers, plan for about 0.3 kg per person. Ready to order?",
+                options: [
+                    { label: "Open the order form", action: "openForm" },
+                    { label: "See other ideas", next: "recommend" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+
+            track: {
+                message: "I can help track your order. Do you have your order confirmation number?",
+                options: [
+                    { label: "Yes, I have it", next: "track_have" },
+                    { label: "No, I lost it", next: "track_lost" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            track_have: {
+                message: "Please type your order number (for example, HM-10432) and I'll look it up.",
+                expects: "orderNumber",
+                options: [ { label: "Back to menu", next: "start" } ]
+            },
+            track_lost: {
+                message: "No problem. Your order number is in the confirmation email we sent. If you can't find it, I can connect you with our team who can look it up by phone number.",
+                options: [
+                    { label: "Talk to a human", next: "human" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+
+            halal: {
+                message: "Every product we sell is 100% halal-certified. Which would you like to know more about?",
+                options: [
+                    { label: "Certification body", next: "halal_cert" },
+                    { label: "Slaughter method", next: "halal_method" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            halal_cert: {
+                message: "Our meat is certified by the Halal Food Authority (HFA). Certificates are displayed in-store and available on request.",
+                options: [
+                    { label: "Slaughter method", next: "halal_method" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            halal_method: {
+                message: "All animals are hand-slaughtered (Zabihah) by a Muslim, with the name of God pronounced, and are never stunned in a way that causes death. Blood is fully drained per Islamic guidelines.",
+                options: [
+                    { label: "Certification body", next: "halal_cert" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+
+            fulfilment: {
+                message: "Here are your options. What would you like to know?",
+                options: [
+                    { label: "Delivery times & fees", next: "delivery_info" },
+                    { label: "Pickup location", next: "pickup_info" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            delivery_info: {
+                message: "We deliver daily between 10am and 6pm. Delivery is free over $50, otherwise a flat $5 fee applies. Same-day delivery is available for orders placed before noon.",
+                options: [
+                    { label: "Place an order", next: "order" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+            pickup_info: {
+                message: "Pick up in-store at 128 Market Street, open daily 9am-8pm. Orders are usually ready within 30 minutes.",
+                options: [
+                    { label: "Place an order", next: "order" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+
+            pricing: {
+                message: "Here is our current per-kilogram pricing:\n- Beef: $12/kg\n- Lamb: $16/kg\n- Goat: $15/kg\n- Chicken: $8/kg\n- Veal: $18/kg\nPrices may vary with market rates.",
+                options: [
+                    { label: "Place an order", next: "order" },
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+
+            human: {
+                message: "I'll connect you with our team. You can reach a person at:\n- Phone: (555) 123-4567\n- Email: support@halalmeats.example\n- Hours: Mon-Sat, 9am-8pm\nIs there anything else I can help with in the meantime?",
+                options: [
+                    { label: "Back to menu", next: "start" }
+                ]
+            },
+
+            fallback: {
+                message: "Sorry, I didn't quite catch that. I can help with orders, tracking, halal certification, delivery, pricing, or connecting you with a person. What would you like?",
+                options: [
+                    { label: "Place an order", next: "order" },
+                    { label: "Track an order", next: "track" },
+                    { label: "Halal certification", next: "halal" },
+                    { label: "Talk to a human", next: "human" }
+                ]
+            }
+        };
+
+        // Keyword -> node id. First matching keyword wins.
+        var intents = [
+            { keywords: ["order", "buy", "purchase", "place"], node: "order" },
+            { keywords: ["track", "status", "where", "delivery status"], node: "track" },
+            { keywords: ["halal", "zabihah", "certif", "slaughter"], node: "halal" },
+            { keywords: ["deliver", "shipping", "pickup", "pick up", "collect"], node: "fulfilment" },
+            { keywords: ["price", "pricing", "cost", "how much", "$", "kg"], node: "pricing" },
+            { keywords: ["human", "person", "agent", "representative", "call", "phone", "contact", "support"], node: "human" },
+            { keywords: ["hi", "hello", "hey", "salam", "assalam"], node: "start" },
+            { keywords: ["recommend", "suggest", "choose", "help me", "what should"], node: "recommend" }
+        ];
+
+        var messagesEl = document.getElementById('messages');
+        var quickRepliesEl = document.getElementById('quickReplies');
+        var composer = document.getElementById('composer');
+        var userInput = document.getElementById('userInput');
+
+        var currentNodeId = 'start';
+
+        function scrollToBottom() {
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function addUserMessage(text) {
+            var row = document.createElement('div');
+            row.className = 'row user';
+            var bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = text;
+            row.appendChild(bubble);
+            messagesEl.appendChild(row);
+            scrollToBottom();
+        }
+
+        function addBotMessage(html) {
+            var row = document.createElement('div');
+            row.className = 'row bot';
+            var bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerHTML = html;
+            row.appendChild(bubble);
+            messagesEl.appendChild(row);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            var row = document.createElement('div');
+            row.className = 'row bot';
+            row.id = 'typingRow';
+            row.innerHTML = '<div class="bubble typing"><span></span><span></span><span></span></div>';
+            messagesEl.appendChild(row);
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            var t = document.getElementById('typingRow');
+            if (t) { t.remove(); }
+        }
+
+        function renderQuickReplies(node) {
+            quickRepliesEl.innerHTML = '';
+            if (!node.options) { return; }
+            node.options.forEach(function (opt) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = opt.label;
+                btn.addEventListener('click', function () {
+                    addUserMessage(opt.label);
+                    if (opt.action) {
+                        runAction(opt.action);
+                    } else if (opt.next) {
+                        goToNode(opt.next);
+                    }
+                });
+                quickRepliesEl.appendChild(btn);
+            });
+        }
+
+        function runAction(action) {
+            if (action === 'openForm') {
+                quickRepliesEl.innerHTML = '';
+                showTyping();
+                setTimeout(function () {
+                    hideTyping();
+                    addBotMessage('Opening the order form for you: <a href="' + ORDER_FORM_URL + '" target="_blank" rel="noopener">Halal Meat Order Form</a>');
+                    window.open(ORDER_FORM_URL, '_blank');
+                    goToNode('start');
+                }, 500);
+            }
+        }
+
+        function goToNode(nodeId) {
+            var node = tree[nodeId] || tree.fallback;
+            currentNodeId = tree[nodeId] ? nodeId : 'fallback';
+            quickRepliesEl.innerHTML = '';
+            showTyping();
+            setTimeout(function () {
+                hideTyping();
+                var message = typeof node.message === 'function' ? node.message() : node.message;
+                addBotMessage(escapeHtml(message).replace(/\n/g, '<br>'));
+                renderQuickReplies(node);
+            }, 450);
+        }
+
+        function routeFreeText(text) {
+            var lower = text.toLowerCase().trim();
+
+            // If the current node is waiting for a specific value, handle it here.
+            var node = tree[currentNodeId];
+            if (node && node.expects === 'orderNumber') {
+                var match = lower.match(/[a-z]{2}-?\d{3,}/i);
+                showTyping();
+                setTimeout(function () {
+                    hideTyping();
+                    if (match) {
+                        addBotMessage('Thanks! Order <strong>' + escapeHtml(match[0].toUpperCase()) + '</strong> is <strong>out for delivery</strong> and should arrive today between 10am and 6pm.');
+                    } else {
+                        addBotMessage("That doesn't look like a valid order number. It usually looks like HM-10432. Want me to connect you with a person instead?");
+                    }
+                    renderQuickReplies(tree.track);
+                    currentNodeId = 'track';
+                }, 500);
+                return;
+            }
+
+            for (var i = 0; i < intents.length; i++) {
+                var intent = intents[i];
+                for (var j = 0; j < intent.keywords.length; j++) {
+                    if (lower.indexOf(intent.keywords[j]) !== -1) {
+                        goToNode(intent.node);
+                        return;
+                    }
+                }
+            }
+            goToNode('fallback');
+        }
+
+        composer.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var text = userInput.value.trim();
+            if (!text) { return; }
+            addUserMessage(text);
+            userInput.value = '';
+            routeFreeText(text);
+        });
+
+        // Kick off the conversation.
+        goToNode('start');
+    </script>
+</body>
+</html>
