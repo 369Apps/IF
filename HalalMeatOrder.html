@@ -1,43 +1,214 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Halal Meat Order Form</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f4f6f8;
+            color: #1f2933;
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+        .card {
+            max-width: 640px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            padding: 2rem;
+        }
+        h2 {
+            margin-top: 0;
+            color: #0b7a3b;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin: 0.75rem 0 0.25rem;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.55rem 0.65rem;
+            border: 1px solid #cbd2d9;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .meat-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            margin-bottom: 0.75rem;
+        }
+        .meat-row > div {
+            flex: 1;
+        }
+        .meat-row .remove-btn {
+            flex: 0 0 auto;
+        }
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .btn-secondary {
+            background: #e4e7eb;
+            color: #1f2933;
+        }
+        .btn-danger {
+            background: #f5c6c6;
+            color: #8a1c1c;
+        }
+        .btn-primary {
+            background: #0b7a3b;
+            color: #fff;
+            padding: 0.7rem 1.4rem;
+        }
+        .actions {
+            margin-top: 1.25rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        #orderSummary {
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            background: #e6f4ea;
+            border: 1px solid #b7e0c4;
+            display: none;
+        }
+        #orderSummary h3 {
+            margin-top: 0;
+            color: #0b7a3b;
+        }
+        #orderSummary ul {
+            margin: 0.5rem 0 0;
+            padding-left: 1.25rem;
+        }
+    </style>
     <script type="text/javascript">
-        // ... JavaScript functions (addMeatOption, handleSubmit) as previously defined ...
+        var MEAT_TYPES = ['Beef', 'Lamb', 'Goat', 'Chicken', 'Veal'];
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function addMeatOption() {
+            var container = document.getElementById('meatOptionsContainer');
+
+            var row = document.createElement('div');
+            row.className = 'meat-row';
+
+            var meatWrap = document.createElement('div');
+            var meatLabel = document.createElement('label');
+            meatLabel.textContent = 'Meat Type:';
+            var select = document.createElement('select');
+            select.name = 'meatType';
+            select.required = true;
+            MEAT_TYPES.forEach(function (type) {
+                var opt = document.createElement('option');
+                opt.value = type;
+                opt.textContent = type;
+                select.appendChild(opt);
+            });
+            meatWrap.appendChild(meatLabel);
+            meatWrap.appendChild(select);
+
+            var qtyWrap = document.createElement('div');
+            var qtyLabel = document.createElement('label');
+            qtyLabel.textContent = 'Quantity (kg):';
+            var qty = document.createElement('input');
+            qty.type = 'number';
+            qty.name = 'quantity';
+            qty.min = '1';
+            qty.value = '1';
+            qty.required = true;
+            qtyWrap.appendChild(qtyLabel);
+            qtyWrap.appendChild(qty);
+
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn-danger remove-btn';
+            removeBtn.textContent = 'Remove';
+            removeBtn.onclick = function () {
+                container.removeChild(row);
+            };
+
+            row.appendChild(meatWrap);
+            row.appendChild(qtyWrap);
+            row.appendChild(removeBtn);
+            container.appendChild(row);
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+
+            var name = document.getElementById('name').value;
+            var email = document.getElementById('email').value;
+            var phone = document.getElementById('phone').value;
+
+            var rows = document.querySelectorAll('#meatOptionsContainer .meat-row');
+            var items = [];
+            rows.forEach(function (row) {
+                var type = row.querySelector('select[name="meatType"]').value;
+                var quantity = row.querySelector('input[name="quantity"]').value;
+                items.push({ type: type, quantity: quantity });
+            });
+
+            var summary = document.getElementById('orderSummary');
+            var html = '<h3>Order Received, thank you!</h3>';
+            html += '<p><strong>Name:</strong> ' + name + '<br>';
+            html += '<strong>Email:</strong> ' + email + '<br>';
+            html += '<strong>Phone:</strong> ' + phone + '</p>';
+            html += '<p><strong>Items:</strong></p><ul>';
+            items.forEach(function (item) {
+                html += '<li>' + item.quantity + ' kg of ' + item.type + '</li>';
+            });
+            html += '</ul>';
+
+            summary.innerHTML = html;
+            summary.style.display = 'block';
+            summary.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('meatOrderForm').addEventListener('submit', handleSubmit);
+            addMeatOption();
         });
     </script>
 </head>
 <body>
 
-    <h2>Halal Meat Order Form</h2>
+    <div class="card">
+        <h2>Halal Meat Order Form</h2>
 
-    <form id="meatOrderForm">
-        <!-- Name Field -->
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
+        <form id="meatOrderForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
 
-        <!-- Email Field -->
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
 
-        <!-- Phone Number Field -->
-        <label for="phone">Phone Number:</label>
-        <input type="tel" id="phone" name="phone" required><br>
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required>
 
-        <!-- Dynamic meat options and quantity inputs -->
-        <div id="meatOptionsContainer"></div>
-        <button type="button" onclick="addMeatOption()">Add More Meat</button><br><br>
+            <div id="meatOptionsContainer"></div>
+            <button type="button" class="btn-secondary" onclick="addMeatOption()">Add More Meat</button>
 
-        <input type="submit" value="Submit Order">
-    </form>
+            <div class="actions">
+                <button type="submit" class="btn-primary">Submit Order</button>
+            </div>
+        </form>
 
-    <script type="text/javascript">
-        // Initialize with one set of options
-        addMeatOption();
-    </script>
+        <div id="orderSummary"></div>
+    </div>
 
 </body>
 </html>
